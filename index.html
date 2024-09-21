@@ -170,7 +170,7 @@
 <body>
 
     <div id="searchContainer">
-        <div id="dateInfo">Datenbank: 21.09.24 14:29 Uhr</div>
+        <div id="dateInfo">Datenbank: 21.09.24</div>
         <input type="file" id="fileInput" accept=".json" style="display: none;">
         <input type="text" id="searchInput" placeholder="Produkt suchen...">
         <button id="searchButton">Suchen</button>
@@ -199,7 +199,7 @@
             .then(response => response.json())
             .then(data => {
                 products = data;
-                updateProductCount(0);
+                updateProductCount(products.length); // Zeigt die Gesamtzahl der Produkte an
                 loadMoreProducts(); // Load the first batch
                 checkScrollPosition(); // Überprüfe, ob der Button sichtbar gemacht werden sollte
             })
@@ -210,7 +210,7 @@
             const reader = new FileReader();
             reader.onload = function(event) {
                 products = JSON.parse(event.target.result);
-                updateProductCount(0);
+                updateProductCount(products.length); // Zeigt die Gesamtzahl der Produkte an
                 currentIndex = 0; // Reset index
                 document.getElementById('results').innerHTML = ''; // Clear previous results
                 loadMoreProducts(); // Load the first batch
@@ -277,9 +277,9 @@
             });
         }
 
-        function updateProductCount(count) {
+        function updateProductCount(totalCount) {
             const productCountSpan = document.getElementById('productCount');
-            productCountSpan.textContent = `${count} Produkt${count !== 1 ? 'e' : ''} gefunden`;
+            productCountSpan.textContent = `Insgesamt ${totalCount} Produkt${totalCount !== 1 ? 'e' : ''} in der Datenbank`;
         }
 
         function hideDateInfo() {
