@@ -14,6 +14,7 @@
             flex-direction: column;
             align-items: center;
             padding-top: 20px;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         #searchContainer {
@@ -26,6 +27,7 @@
             padding: 10px 0;
             z-index: 1000;
             border-bottom: 1px solid #333;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         #dateInfo {
@@ -161,6 +163,46 @@
             color: #6e6e73;
         }
 
+        .product {
+            background-color: #333;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            transition: transform 0.2s;
+            color: #f5f5f7;
+        }
+
+        .product:hover {
+            transform: translateY(-2px);
+        }
+
+        .product img {
+            max-width: 60px;
+            margin-right: 15px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .product h2 {
+            font-size: 16px;
+            margin: 0;
+            color: inherit;
+            flex-grow: 1;
+            font-weight: 500;
+        }
+
+        .product a {
+            text-decoration: none;
+            color: #82aaff;
+        }
+
+        .product a:hover {
+            text-decoration: underline;
+        }
+
         body.light-mode {
             background-color: #f5f5f7;
             color: #1d1d1f;
@@ -202,7 +244,7 @@
         <div id="dateInfo">Datenbank: 21.09.24</div>
         <form id="searchForm">
             <input type="text" id="searchInput" placeholder="Produkt suchen...">
-            <button id="searchButton">Suchen</button>
+            <button id="searchButton" type="button">Suchen</button>
         </form>
         <div id="controlsContainer">
             <select id="pageSelector">
