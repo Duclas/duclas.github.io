@@ -155,6 +155,7 @@
 
     <div id="searchContainer">
         <div id="dateInfo">Datenbank: 20.09.24</div>
+        <input type="file" id="fileInput" accept=".json" style="display: none;">
         <input type="text" id="searchInput" placeholder="Produkt suchen...">
         <button id="searchButton">Suchen</button>
         <button id="showAllButton">Alle Produkte anzeigen</button>
@@ -179,18 +180,25 @@
         let products = [];
 
         // Fetch the JSON file from GitHub
-        fetch('https://raw.githubusercontent.com/Duclas/duclas.github.io/refs/heads/main/AmazingWineExplorerDatabase.json')
+        fetch('https://raw.githubusercontent.com/Duclas/AmazingWine/main/AmazonVineExplorerDatabase.json')
             .then(response => response.json())
             .then(data => {
-                products = data.map(item => ({
-                    description_full: item.description_full,
-                    data_img_url: item.data_img_url,
-                    link: item.link
-                }));
+                products = data;
                 // Initialisierung ohne Produkte anzuzeigen
                 updateProductCount(0);
             })
             .catch(error => console.error('Error loading the JSON file:', error));
+
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                products = JSON.parse(event.target.result);
+                // Nach dem Hochladen wird die Produktanzahl aktualisiert, aber keine Produkte angezeigt
+                updateProductCount(0);
+            };
+            reader.readAsText(file);
+        });
 
         document.getElementById('searchButton').addEventListener('click', function() {
             performSearch();
@@ -215,7 +223,8 @@
             const searchTerms = searchTerm.split(' ').filter(term => term.trim() !== '');
             const filteredProducts = products.filter(product => 
                 searchTerms.every(term => 
-                    product.description_full.toLowerCase().includes(term)
+                    product.description_full.toLowerCase().includes(term) ||
+                    product.description_short.toLowerCase().includes(term)
                 )
             );
             displayResults(filteredProducts);
@@ -229,7 +238,7 @@
                 const productDiv = document.createElement('div');
                 productDiv.classList.add('product');
                 productDiv.innerHTML = `
-                    <img src="${product.data_img_url}" alt="Produktbild">
+                    <img src="${product.data_img_url}" alt="${product.data_img_alt}">
                     <h2><a href="https://www.amazon.de${product.link}" target="_blank">${product.description_full}</a></h2>
                 `;
                 resultsDiv.appendChild(productDiv);
