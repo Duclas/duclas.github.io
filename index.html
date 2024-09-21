@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+    <!-- ... (vorheriger Head-Inhalt) ... -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Produkt Suche</title>
     <style>
+        /* ... (vorherige Stile) ... */
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
@@ -96,7 +99,7 @@
         #results {
             margin-top: 20px;
             width: 100%;
-            max-width: 1000px;
+            max-width: 600px;
             padding-bottom: 20px;
         }
 
@@ -164,9 +167,14 @@
             overflow: hidden;
             border-radius: 8px;
             cursor: pointer;
+            width: 100%;
+            padding-top: 100%; /* Für quadratische Kacheln */
         }
 
         .product-tile img {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
@@ -294,7 +302,7 @@
 <body class="night-mode">
 
     <div id="searchContainer">
-        <div id="dateInfo">Stand 21.09.2024 15:36 Uhr</div>
+        <div id="dateInfo">Stand 21.09.2024 17:44 Uhr</div>
         <input type="file" id="fileInput" accept=".json" style="display: none;">
         <div id="searchBar">
             <input type="text" id="searchInput" placeholder="Produkt suchen...">
@@ -306,7 +314,7 @@
                     <input type="checkbox" id="themeSwitch" checked>
                     <span class="slider"></span>
                 </label>
-                <span id="modeLabel">Darkmode</span>
+                <span id="modeLabel">Dark</span>
             </div>
             <div>
                 <label class="switch">
@@ -331,13 +339,13 @@
         const batchSize = 50;
         let currentPage = 1;
         let filteredProducts = [];
-        let isLuckyMode = false; // Flag für den "I'm Feeling Lucky"-Modus
+        let isLuckyMode = false;
 
         const translations = {
             de: {
                 searchPlaceholder: "Produkt suchen...",
                 searchButton: "Suchen",
-                modeLabel: "Darkmode",
+                modeLabel: "Dark",
                 languageLabel: "Tiếng Việt",
                 productCount: (current, total) => `Produkt ${current} von ${total}`,
                 productCountTotal: (total) => `${total} Produkt${total !== 1 ? 'e' : ''}`,
@@ -368,11 +376,12 @@
             updatePageSelector();
         }
 
+        // Fetch the JSON file from GitHub
         fetch('https://raw.githubusercontent.com/Duclas/duclas.github.io/refs/heads/main/AmazingWineExplorerDatabase.json')
             .then(response => response.json())
             .then(data => {
                 products = data;
-                filteredProducts = products; // Initialisierung
+                filteredProducts = products;
                 updateProductCount(products.length);
                 loadPage(currentPage);
                 updatePageSelector();
@@ -400,18 +409,21 @@
         });
 
         document.getElementById('searchButton').addEventListener('click', function() {
+            if (isLuckyMode) exitLuckyMode();
             performSearch();
             hideDateInfo();
         });
 
         document.getElementById('searchInput').addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
+                if (isLuckyMode) exitLuckyMode();
                 performSearch();
                 hideDateInfo();
             }
         });
 
         document.getElementById('pageSelector').addEventListener('change', function(event) {
+            if (isLuckyMode) exitLuckyMode();
             const selectedPage = parseInt(event.target.value);
             currentPage = selectedPage;
             currentIndex = (currentPage - 1) * batchSize;
@@ -428,7 +440,7 @@
         window.addEventListener('scroll', checkScrollPosition);
 
         function performSearch() {
-            isLuckyMode = false; // Normaler Modus
+            isLuckyMode = false;
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const searchTerms = searchTerm.split(' ').filter(term => term.trim() !== '');
             filteredProducts = products.filter(product =>
@@ -455,7 +467,7 @@
         }
 
         function loadPage(pageNumber) {
-            isLuckyMode = false; // Normaler Modus
+            isLuckyMode = false;
             const separator = document.createElement('div');
             separator.classList.add('page-separator');
             separator.textContent = translations[currentLanguage].pageText(pageNumber);
@@ -553,7 +565,7 @@
             if (products.length === 0) return;
 
             const shuffledProducts = [...products].sort(() => 0.5 - Math.random());
-            const randomProducts = shuffledProducts.slice(0, batchSize);
+            const randomProducts = shuffledProducts.slice(0, 25); // Genau 25 Produkte
 
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '';
@@ -582,6 +594,11 @@
             document.getElementById('productCount').textContent = translations[currentLanguage].productCountTotal(randomProducts.length);
         }
 
+        function exitLuckyMode() {
+            isLuckyMode = false;
+            // Keine besonderen Änderungen notwendig, da wir im normalen Modus bleiben
+        }
+
         function hideDateInfo() {
             const dateInfo = document.getElementById('dateInfo');
             if (dateInfo) {
@@ -590,6 +607,7 @@
         }
 
         function checkScrollPosition() {
+            if (isLuckyMode) return;
             updateCurrentProductCount();
 
             if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
@@ -597,7 +615,9 @@
             }
         }
 
+        // Toggle theme between day and night mode
         document.getElementById('themeSwitch').addEventListener('change', function() {
+            if (isLuckyMode) exitLuckyMode();
             const bodyClassList = document.body.classList;
             const modeLabel = document.getElementById('modeLabel');
             if (this.checked) {
@@ -607,15 +627,16 @@
             } else {
                 bodyClassList.add('light-mode');
                 bodyClassList.remove('night-mode');
-                modeLabel.textContent = 'Lightmode';
+                modeLabel.textContent = 'Light';
             }
         });
 
+        // Toggle language between Deutsch and Vietnamesisch
         document.getElementById('languageSwitch').addEventListener('change', function() {
+            if (isLuckyMode) exitLuckyMode();
             currentLanguage = this.checked ? 'vi' : 'de';
             updateTranslations();
         });
     </script>
-
 </body>
 </html>
