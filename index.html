@@ -49,7 +49,7 @@
             border-color: #007aff;
         }
 
-        #searchButton, #loadMoreButton {
+        #searchButton {
             margin-top: 10px;
             padding: 10px 20px;
             border: none;
@@ -61,7 +61,7 @@
             transition: background-color 0.2s;
         }
 
-        #searchButton:hover, #loadMoreButton:hover {
+        #searchButton:hover {
             background-color: #005bb5;
         }
 
@@ -87,6 +87,7 @@
             display: flex;
             align-items: center;
             transition: transform 0.2s;
+            color: #1d1d1f;
         }
 
         .product:hover {
@@ -103,7 +104,7 @@
         .product h2 {
             font-size: 16px;
             margin: 0;
-            color: #1d1d1f;
+            color: inherit;
             flex-grow: 1;
             font-weight: 500;
         }
@@ -188,12 +189,41 @@
             font-weight: bold;
             color: #6e6e73;
         }
+
+        body.night-mode {
+            background-color: #1d1d1f;
+            color: #f5f5f7;
+        }
+
+        body.night-mode .product {
+            background-color: #333;
+            color: #f5f5f7;
+        }
+
+        body.night-mode #searchContainer {
+            background-color: #1d1d1f;
+        }
+
+        body.night-mode #searchInput,
+        body.night-mode #pageSelector {
+            background-color: #333;
+            color: #f5f5f7;
+            border-color: #666;
+        }
+
+        body.night-mode #pageSelector:focus {
+            border-color: #007aff;
+        }
+
+        body.night-mode a {
+            color: #82aaff;
+        }
     </style>
 </head>
 <body>
 
     <div id="searchContainer">
-        <div id="dateInfo">Aktualisiert am 21.09.24 15:03 Uhr</div>
+        <div id="dateInfo">Datenbank: 21.09.24</div>
         <input type="file" id="fileInput" accept=".json" style="display: none;">
         <input type="text" id="searchInput" placeholder="Produkt suchen...">
         <button id="searchButton">Suchen</button>
@@ -292,17 +322,12 @@
             displayResults(pageProducts);
             currentIndex = startIndex + batchSize;
 
-            const separator = document.createElement('div');
-            separator.classList.add('page-separator');
-            separator.textContent = `Seite ${pageNumber}`;
-            document.getElementById('results').appendChild(separator);
-
-            // If more pages are available, show the next page separator
+            // Show the next page separator only if there are more pages
             if (currentIndex < products.length) {
-                const nextPage = document.createElement('div');
-                nextPage.classList.add('page-separator');
-                nextPage.textContent = `Seite ${pageNumber + 1}`;
-                document.getElementById('results').appendChild(nextPage);
+                const separator = document.createElement('div');
+                separator.classList.add('page-separator');
+                separator.textContent = `Seite ${pageNumber + 1}`;
+                document.getElementById('results').appendChild(separator);
             }
         }
 
@@ -328,7 +353,7 @@
 
         function updateProductCount(totalCount) {
             const productCountSpan = document.getElementById('productCount');
-            productCountSpan.textContent = `${totalCount} Produkt${totalCount !== 1 ? 'e' : ''} gefunden`;
+            productCountSpan.textContent = `Insgesamt ${totalCount} Produkt${totalCount !== 1 ? 'e' : ''} in der Datenbank`;
         }
 
         function updatePageSelector() {
@@ -362,13 +387,9 @@
         // Toggle theme between day and night mode
         document.getElementById('themeSwitch').addEventListener('change', function() {
             if (this.checked) {
-                document.body.style.backgroundColor = '#1d1d1f';
-                document.body.style.color = '#f5f5f7';
-                document.getElementById('searchContainer').style.backgroundColor = '#1d1d1f';
+                document.body.classList.add('night-mode');
             } else {
-                document.body.style.backgroundColor = '#f5f5f7';
-                document.body.style.color = '#1d1d1f';
-                document.getElementById('searchContainer').style.backgroundColor = '#f5f5f7';
+                document.body.classList.remove('night-mode');
             }
         });
     </script>
