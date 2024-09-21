@@ -165,12 +165,35 @@
         input:checked + .slider:before {
             transform: translateX(20px);
         }
+
+        #pageSelector {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 20px;
+            border: 1px solid #d1d1d6;
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #pageSelector:focus {
+            border-color: #007aff;
+        }
+
+        .page-separator {
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            color: #6e6e73;
+        }
     </style>
 </head>
 <body>
 
     <div id="searchContainer">
-        <div id="dateInfo">Datenbank: 21.09.24</div>
+        <div id="dateInfo">Aktualisiert am 21.09.24 15:03 Uhr</div>
         <input type="file" id="fileInput" accept=".json" style="display: none;">
         <input type="text" id="searchInput" placeholder="Produkt suchen...">
         <button id="searchButton">Suchen</button>
@@ -181,27 +204,29 @@
             </label>
             Day / Night Mode
         </div>
+        <select id="pageSelector">
+            <option value="1">Seite 1</option>
+        </select>
         <div id="productCount"></div>
     </div>
 
     <div id="results"></div>
-    
-    <!-- Button am Ende der Ergebnisse -->
-    <button id="loadMoreButton">Weitere Produkte laden</button>
 
     <script>
         let products = [];
         let currentIndex = 0;
-        const batchSize = 200;
+        const batchSize = 50;
+        let currentPage = 1;
 
         // Fetch the JSON file from GitHub
         fetch('https://raw.githubusercontent.com/Duclas/duclas.github.io/refs/heads/main/AmazingWineExplorerDatabase.json')
             .then(response => response.json())
             .then(data => {
                 products = data;
-                updateProductCount(products.length); // Zeigt die Gesamtzahl der Produkte an
-                loadMoreProducts(); // Load the first batch
-                checkScrollPosition(); // Überprüfe, ob der Button sichtbar gemacht werden sollte
+                updateProductCount(products.length);
+                loadPage(currentPage); // Load the first page
+                updatePageSelector(); // Populate the page selector dropdown
+                checkScrollPosition();
             })
             .catch(error => console.error('Error loading the JSON file:', error));
 
@@ -210,11 +235,13 @@
             const reader = new FileReader();
             reader.onload = function(event) {
                 products = JSON.parse(event.target.result);
-                updateProductCount(products.length); // Zeigt die Gesamtzahl der Produkte an
+                updateProductCount(products.length);
                 currentIndex = 0; // Reset index
+                currentPage = 1; // Reset to first page
                 document.getElementById('results').innerHTML = ''; // Clear previous results
-                loadMoreProducts(); // Load the first batch
-                checkScrollPosition(); // Überprüfe, ob der Button sichtbar gemacht werden sollte
+                loadPage(currentPage); // Load the first page
+                updatePageSelector(); // Populate the page selector dropdown
+                checkScrollPosition();
             };
             reader.readAsText(file);
         });
@@ -231,11 +258,16 @@
             }
         });
 
-        window.addEventListener('scroll', checkScrollPosition);
-
-        document.getElementById('loadMoreButton').addEventListener('click', function() {
-            loadMoreProducts();
+        document.getElementById('pageSelector').addEventListener('change', function(event) {
+            const selectedPage = parseInt(event.target.value);
+            currentPage = selectedPage;
+            currentIndex = (currentPage - 1) * batchSize;
+            document.getElementById('results').innerHTML = ''; // Clear previous results
+            loadPage(currentPage); // Load the selected page
+            checkScrollPosition();
         });
+
+        window.addEventListener('scroll', checkScrollPosition);
 
         function performSearch() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -245,23 +277,40 @@
                     product.description_full.toLowerCase().includes(term)
                 )
             );
+            currentPage = 1;
             currentIndex = 0;
             document.getElementById('results').innerHTML = '';
             displayResults(filteredProducts.slice(0, batchSize)); // Display only the first batch
             currentIndex = batchSize;
             updateProductCount(filteredProducts.length);
-            checkScrollPosition(); // Überprüfe, ob der Button sichtbar gemacht werden sollte
+            checkScrollPosition();
+        }
+
+        function loadPage(pageNumber) {
+            const startIndex = (pageNumber - 1) * batchSize;
+            const pageProducts = products.slice(startIndex, startIndex + batchSize);
+            displayResults(pageProducts);
+            currentIndex = startIndex + batchSize;
+
+            const separator = document.createElement('div');
+            separator.classList.add('page-separator');
+            separator.textContent = `Seite ${pageNumber}`;
+            document.getElementById('results').appendChild(separator);
+
+            // If more pages are available, show the next page separator
+            if (currentIndex < products.length) {
+                const nextPage = document.createElement('div');
+                nextPage.classList.add('page-separator');
+                nextPage.textContent = `Seite ${pageNumber + 1}`;
+                document.getElementById('results').appendChild(nextPage);
+            }
         }
 
         function loadMoreProducts() {
-            const remainingProducts = products.slice(currentIndex, currentIndex + batchSize);
-            displayResults(remainingProducts);
-            currentIndex += batchSize;
+            if (currentIndex >= products.length) return;
 
-            // If no more products to load, hide the "Load More" button
-            if (currentIndex >= products.length) {
-                document.getElementById('loadMoreButton').style.display = 'none';
-            }
+            const nextPage = Math.floor(currentIndex / batchSize) + 1;
+            loadPage(nextPage);
         }
 
         function displayResults(productsToDisplay) {
@@ -279,7 +328,22 @@
 
         function updateProductCount(totalCount) {
             const productCountSpan = document.getElementById('productCount');
-            productCountSpan.textContent = `Insgesamt ${totalCount} Produkt${totalCount !== 1 ? 'e' : ''} in der Datenbank`;
+            productCountSpan.textContent = `${totalCount} Produkte${totalCount !== 1 ? 'e' : ''} gefunden`;
+        }
+
+        function updatePageSelector() {
+            const totalPages = Math.ceil(products.length / batchSize);
+            const pageSelector = document.getElementById('pageSelector');
+            pageSelector.innerHTML = ''; // Clear existing options
+
+            for (let i = 1; i <= totalPages; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = `Seite ${i}`;
+                pageSelector.appendChild(option);
+            }
+
+            pageSelector.value = currentPage; // Set the selector to the current page
         }
 
         function hideDateInfo() {
@@ -290,11 +354,8 @@
         }
 
         function checkScrollPosition() {
-            const loadMoreButton = document.getElementById('loadMoreButton');
             if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-                loadMoreButton.style.display = 'block';
-            } else {
-                loadMoreButton.style.display = 'none';
+                loadMoreProducts();
             }
         }
 
