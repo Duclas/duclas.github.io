@@ -1,150 +1,186 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <!-- ... (vorheriger Head-Inhalt) ... -->
     <meta charset="UTF-8">
+    <title>Produktübersicht</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Produkt Suche</title>
+    <!-- Inline CSS -->
     <style>
-        /* ... (vorherige Stile) ... */
-
+        /* Allgemeine Gestaltung nach Apple-Designprinzipien */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
-            background-color: #1d1d1f;
-            color: #f5f5f7;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+            background-color: #1C1C1E;
+            color: #FFFFFF;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        #searchContainer {
-            width: 100%;
-            max-width: 600px;
-            text-align: center;
-            position: sticky;
+        .light-mode {
+            background-color: #FFFFFF;
+            color: #000000;
+        }
+
+        header {
+            position: fixed;
             top: 0;
-            background-color: #1d1d1f;
-            padding: 10px 10px 5px;
+            width: 100%;
+            background-color: #1C1C1E;
+            padding: 10px 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             z-index: 1000;
-            border-bottom: 1px solid #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
-        #searchBar {
-            display: flex;
-            width: 90%;
-            max-width: 400px;
-            margin-top: 10px;
+        header.light-mode {
+            background-color: #F9F9F9;
         }
 
-        #toggleContainer {
+        header .header-top, header .header-bottom {
             display: flex;
             justify-content: space-between;
-            width: 100%;
-            max-width: 350px;
-            margin-top: 5px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header-top {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .header-top.light-mode {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        /* Anpassungen für die Verschiebung des "Dark"-Schalters */
+        .header-top > div {
+            display: flex;
             align-items: center;
         }
 
-        #dateInfo {
-            font-size: 12px;
-            color: #6e6e73;
-            margin-bottom: 8px;
+        .header-top #static-text {
+            flex: 1;
         }
 
-        #searchInput {
-            padding: 10px 20px;
-            width: 100%;
-            border: 1px solid #666;
-            border-radius: 20px 0 0 20px;
+        .language-toggle {
+            margin-right: 20px;
+        }
+
+        .theme-toggle {
+            /* Entfernen des margin-right, um den Schalter nach links zu verschieben */
+            margin-right: 0;
+        }
+
+        .search-and-buttons {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+
+        .search-bar {
+            display: flex;
+            flex: 1;
+            max-width: none; /* Entfernt die maximale Breite */
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 8px 12px;
             font-size: 16px;
-            outline: none;
-            background-color: #333;
-            color: #f5f5f7;
-            transition: border-color 0.2s;
-            border-right: none;
-        }
-
-        #searchInput:focus {
-            border-color: #007aff;
-        }
-
-        #searchButton {
-            padding: 10px 20px;
             border: none;
-            border-radius: 0 20px 20px 0;
-            background-color: #007aff;
-            color: white;
+            border-radius: 8px 0 0 8px;
+            outline: none;
+        }
+
+        .search-bar button {
+            padding: 8px 16px;
             font-size: 16px;
+            border: none;
+            background-color: #007AFF;
+            color: #FFFFFF;
+            border-radius: 0 8px 8px 0;
             cursor: pointer;
-            transition: background-color 0.2s;
-            border-left: none;
+            outline: none;
         }
 
-        #searchButton:hover {
-            background-color: #005bb5;
+        .search-bar button:hover {
+            background-color: #005BBB;
         }
 
-        #productCount {
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+        .header-buttons button {
+            margin-left: 10px;
+            padding: 8px 16px;
+            font-size: 16px;
+            border: none;
+            background-color: #007AFF;
+            color: #FFFFFF;
+            border-radius: 8px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .header-buttons button:hover {
+            background-color: #005BBB;
+        }
+
+        .page-selection {
+            display: flex;
+            align-items: center;
+            margin-left: 20px;
             margin-top: 10px;
-            font-weight: bold;
-            color: #6e6e73;
-            font-size: 12px;
         }
 
-        #results {
-            margin-top: 20px;
-            width: 100%;
-            max-width: 600px;
-            padding-bottom: 20px;
+        .page-selection label {
+            margin-right: 5px;
+            font-weight: 600;
         }
 
-        .product-list {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        main {
+            padding: 20px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            /* padding-top wird durch JavaScript gesetzt */
         }
 
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr); /* 5 Spalten für das 5x5 Raster */
-            gap: 2px; /* Minimale Lücke zwischen den Kacheln */
-            max-width: 100%;
-        }
-
-        .product {
-            background-color: #333;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+        /* Anpassung der Produktdarstellung */
+        .product-list .product-item {
             display: flex;
             align-items: center;
-            transition: transform 0.2s;
-            color: #f5f5f7;
-            width: 100%;
+            margin-bottom: 20px;
         }
 
-        .product:hover {
-            transform: translateY(-2px);
-        }
-
-        .product img {
+        .product-item img {
             max-width: 60px;
             margin-right: 15px;
             border-radius: 8px;
             object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
         }
 
-        .product h2 {
+        .product-item img:hover {
+            border-color: #007AFF;
+        }
+
+        .product-item img.favorite {
+            border-color: #FFD60A;
+        }
+
+        .product-item .product-info {
+            flex-grow: 1;
+        }
+
+        .product-item .product-info h3 {
             font-size: 16px;
             margin: 0;
             color: inherit;
-            flex-grow: 1;
             font-weight: 500;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -154,40 +190,164 @@
             max-height: 44px;
         }
 
-        .product a {
+        .product-item .product-info h3 a {
+            color: inherit;
             text-decoration: none;
-            color: #82aaff;
         }
 
-        .product a:hover {
+        .product-item .product-info h3 a:hover {
             text-decoration: underline;
         }
 
-        .product-tile {
-            position: relative;
-            overflow: hidden;
-            border-radius: 2px; /* Kleinere Kanten */
-            cursor: pointer;
-            width: 100%;
-            padding-top: 100%; /* Für quadratische Kacheln */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
         }
 
-        .product-tile img {
-            position: absolute;
-            top: 0;
+        .product-grid .product-item {
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 0;
+        }
+
+        .product-grid .product-item img {
+            max-width: 100%;
+            margin-right: 0;
+            border-radius: 2px;
+        }
+
+        .product-grid .product-item .product-info {
+            margin-top: 5px;
+        }
+
+        .product-grid .product-item .product-info h3 {
+            font-size: 14px;
+            max-height: 36px;
+        }
+
+        #loading-message {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 18px;
+            display: none;
+        }
+
+        /* Modal für Favoriten */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
             left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            display: block;
+            overflow: auto;
+            background-color: rgba(28,28,30,0.85);
         }
 
+        .modal-content {
+            background-color: #2C2C2E;
+            margin: 5% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+            color: #FFFFFF;
+            border-radius: 12px;
+        }
+
+        .modal-content.light-mode {
+            background-color: #FFFFFF;
+            color: #000000;
+        }
+
+        .close {
+            color: #FFFFFF;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #CCCCCC;
+        }
+
+        .favorites-code {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .favorites-code label {
+            margin-right: 10px;
+            font-weight: 600;
+        }
+
+        .favorites-code-input-group {
+            flex: 1;
+            display: flex;
+            align-items: stretch;
+        }
+
+        .favorites-code-input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px 0 0 8px;
+            outline: none;
+        }
+
+        .favorites-code-input-group button {
+            padding: 8px 16px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            outline: none;
+        }
+
+        #copy-favorites-code {
+            background-color: #007AFF;
+            color: #FFFFFF;
+            border-radius: 0;
+        }
+
+        #load-favorites-code {
+            background-color: #34C759; /* Grün für den "Laden"-Button */
+            color: #FFFFFF;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* Feedback-Effekt für Buttons */
+        .button-feedback {
+            animation: feedback 0.3s;
+        }
+
+        @keyframes feedback {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* Umschalter */
+        .theme-toggle, .language-toggle {
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-toggle label, .language-toggle label {
+            margin-right: 5px;
+            font-weight: 600;
+        }
+
+        /* Neuer Schalter im iOS-Stil */
         .switch {
             position: relative;
             display: inline-block;
-            width: 52px;
-            height: 32px;
-            margin-right: 10px;
+            width: 50px;
+            height: 28px;
+            margin-left: 5px; /* Verschiebt den Schalter etwas nach links */
         }
 
         .switch input {
@@ -199,11 +359,11 @@
         .slider {
             position: absolute;
             cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #d1d1d6;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            background-color: #e5e5ea;
             transition: .4s;
             border-radius: 16px;
         }
@@ -213,445 +373,453 @@
             content: "";
             height: 24px;
             width: 24px;
-            left: 4px;
-            bottom: 4px;
+            left: 2px;
+            bottom: 2px;
             background-color: white;
             transition: .4s;
             border-radius: 50%;
         }
 
         input:checked + .slider {
-            background-color: #007aff;
+            background-color: #007AFF;
         }
 
         input:checked + .slider:before {
-            transform: translateX(20px);
+            transform: translateX(22px);
         }
 
-        #pageSelector {
-            margin-left: 10px;
-            padding: 8px;
-            border-radius: 20px;
-            border: 1px solid #666;
-            background-color: #333;
-            color: #f5f5f7;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.2s;
-            flex-shrink: 0;
-        }
+        /* Anpassungen für mobile Geräte */
+        @media (max-width: 768px) {
+            .product-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
 
-        #pageSelector:focus {
-            border-color: #007aff;
-        }
+            .header-bottom {
+                flex-direction: column;
+                align-items: flex-start;
+            }
 
-        #luckyButton {
-            margin-left: 10px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: none;
-            background-color: #ff9500;
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
+            .search-and-buttons {
+                width: 100%;
+                margin-bottom: 10px;
+            }
 
-        #luckyButton:hover {
-            background-color: #cc7a00;
-        }
+            .header-buttons {
+                margin-left: 0;
+                margin-top: 10px;
+            }
 
-        .page-separator {
-            text-align: center;
-            margin: 20px 0;
-            font-weight: bold;
-            color: #6e6e73;
-        }
+            .page-selection {
+                margin-left: 0;
+                margin-top: 10px;
+            }
 
-        body.light-mode {
-            background-color: #f5f5f7;
-            color: #1d1d1f;
-        }
-
-        body.light-mode .product {
-            background-color: white;
-            color: #1d1d1f;
-        }
-
-        body.light-mode #searchContainer {
-            background-color: #f5f5f7;
-        }
-
-        body.light-mode #searchInput,
-        body.light-mode #pageSelector,
-        body.light-mode #luckyButton {
-            background-color: #f5f5f7;
-            color: #1d1d1f;
-            border-color: #d1d1d6;
-        }
-
-        body.light-mode #pageSelector:focus,
-        body.light-mode #luckyButton:focus {
-            border-color: #007aff;
-        }
-
-        body.light-mode a {
-            color: #007aff;
+            /* padding-top wird durch JavaScript gesetzt */
         }
     </style>
 </head>
-<body class="night-mode">
+<body>
+    <!-- Kopfzeile -->
+    <header>
+        <div class="header-top">
+            <!-- Statischer Text anstelle von Datum und Uhrzeit -->
+            <div id="static-text">Stand 21.09.24</div>
+            <div class="language-toggle">
+                <label for="language-select">Sprache:</label>
+                <select id="language-select">
+                    <option value="de">Deutsch</option>
+                    <option value="vi">Vietnamesisch</option>
+                </select>
+            </div>
+            <div class="theme-toggle">
+                <label for="theme-switch">Dark</label>
+                <label class="switch">
+                    <input type="checkbox" id="theme-switch" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+        <div class="header-bottom">
+            <div class="search-and-buttons">
+                <div class="search-bar">
+                    <input type="text" id="search-input" placeholder="Produkt suchen...">
+                    <button id="search-button">Suchen</button>
+                </div>
+                <div class="header-buttons">
+                    <button id="favorites-button">Favoriten</button>
+                    <button id="random-button">Zufällig</button>
+                </div>
+            </div>
+            <div class="page-selection">
+                <label for="page-select">Seite:</label>
+                <select id="page-select"></select>
+            </div>
+        </div>
+    </header>
 
-    <div id="searchContainer">
-        <div id="dateInfo">Stand 21.09.2024 18:00 Uhr</div>
-        <input type="file" id="fileInput" accept=".json" style="display: none;">
-        <div id="searchBar">
-            <input type="text" id="searchInput" placeholder="Produkt suchen...">
-            <button id="searchButton">Suchen</button>
-        </div>
-        <div id="toggleContainer">
-            <div>
-                <label class="switch">
-                    <input type="checkbox" id="themeSwitch" checked>
-                    <span class="slider"></span>
-                </label>
-                <span id="modeLabel">Dark</span>
+    <!-- Hauptbereich -->
+    <main>
+        <div id="product-container" class="product-list"></div>
+        <div id="loading-message">Weitere Produkte werden geladen...</div>
+    </main>
+
+    <!-- Favoritenliste (Modal) -->
+    <div id="favorites-modal" class="modal">
+        <div class="modal-content">
+            <span id="close-favorites" class="close">&times;</span>
+            <h2>Favoriten</h2>
+            <div id="favorites-list"></div>
+            <div class="favorites-code">
+                <label for="favorites-code-input">Favoriten-Code:</label>
+                <div class="favorites-code-input-group">
+                    <input type="text" id="favorites-code-input">
+                    <button id="copy-favorites-code">Kopieren</button>
+                    <button id="load-favorites-code">Laden</button>
+                </div>
             </div>
-            <div>
-                <label class="switch">
-                    <input type="checkbox" id="languageSwitch">
-                    <span class="slider"></span>
-                </label>
-                <span id="languageLabel">Tiếng Việt</span>
-            </div>
-            <select id="pageSelector">
-                <option value="1">Seite 1</option>
-            </select>
-            <button id="luckyButton">Random</button>
         </div>
-        <div id="productCount"></div>
     </div>
 
-    <div id="results"></div>
-
+    <!-- Inline JavaScript -->
     <script>
-        let products = [];
-        let currentIndex = 0;
-        const batchSize = 50;
-        let currentPage = 1;
-        let filteredProducts = [];
-        let isLuckyMode = false;
+        document.addEventListener('DOMContentLoaded', () => {
+            let products = [];
+            let currentPage = 1;
+            let productsPerPage = 50;
+            let totalPages = 0;
+            let favorites = [];
+            let isRandomMode = false;
+            let language = 'de';
+            let filteredProducts = [];
 
-        const translations = {
-            de: {
-                searchPlaceholder: "Produkt suchen...",
-                searchButton: "Suchen",
-                modeLabel: "Dark",
-                languageLabel: "Tiếng Việt",
-                productCount: (current, total) => `Produkt ${current} von ${total}`,
-                productCountTotal: (total) => `${total} Produkt${total !== 1 ? 'e' : ''}`,
-                noProductsFound: "Keine Produkte gefunden.",
-                pageText: (page) => `Seite ${page}`,
-            },
-            vi: {
-                searchPlaceholder: "Tìm kiếm sản phẩm...",
-                searchButton: "Tìm",
-                modeLabel: "Tối",
-                languageLabel: "Tiếng Việt",
-                productCount: (current, total) => `Sản phẩm ${current} trong số ${total}`,
-                productCountTotal: (total) => `${total} sản phẩm`,
-                noProductsFound: "Không tìm thấy sản phẩm nào.",
-                pageText: (page) => `Trang ${page}`,
-            }
-        };
+            const productContainer = document.getElementById('product-container');
+            const loadingMessage = document.getElementById('loading-message');
+            const searchInput = document.getElementById('search-input');
+            const searchButton = document.getElementById('search-button');
+            const randomButton = document.getElementById('random-button');
+            const pageSelect = document.getElementById('page-select');
+            const favoritesButton = document.getElementById('favorites-button');
+            const favoritesModal = document.getElementById('favorites-modal');
+            const closeFavorites = document.getElementById('close-favorites');
+            const favoritesList = document.getElementById('favorites-list');
+            const favoritesCodeInput = document.getElementById('favorites-code-input');
+            const loadFavoritesCodeButton = document.getElementById('load-favorites-code');
+            const copyFavoritesCodeButton = document.getElementById('copy-favorites-code');
+            const themeSwitch = document.getElementById('theme-switch');
+            const languageSelect = document.getElementById('language-select');
+            const mainElement = document.querySelector('main');
+            const headerElement = document.querySelector('header');
 
-        let currentLanguage = 'de';
-
-        function updateTranslations() {
-            const translation = translations[currentLanguage];
-            document.getElementById('searchInput').placeholder = translation.searchPlaceholder;
-            document.getElementById('searchButton').textContent = translation.searchButton;
-            document.getElementById('modeLabel').textContent = translation.modeLabel;
-            document.getElementById('languageLabel').textContent = translation.languageLabel;
-            updateProductCount(filteredProducts.length || products.length);
-            updatePageSelector();
-        }
-
-        // Fetch the JSON file from GitHub
-        fetch('https://raw.githubusercontent.com/Duclas/duclas.github.io/refs/heads/main/AmazingWineExplorerDatabase.json')
-            .then(response => response.json())
-            .then(data => {
-                products = data;
-                filteredProducts = products;
-                updateProductCount(products.length);
-                loadPage(currentPage);
-                updatePageSelector();
-                checkScrollPosition();
-                updateCurrentProductCount(true);
-            })
-            .catch(error => console.error('Error loading the JSON file:', error));
-
-        document.getElementById('fileInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                products = JSON.parse(event.target.result);
-                filteredProducts = products;
-                updateProductCount(products.length);
-                currentIndex = 0;
-                currentPage = 1;
-                document.getElementById('results').innerHTML = '';
-                loadPage(currentPage);
-                updatePageSelector();
-                checkScrollPosition();
-                updateCurrentProductCount(true);
-            };
-            reader.readAsText(file);
-        });
-
-        document.getElementById('searchButton').addEventListener('click', function() {
-            if (isLuckyMode) exitLuckyMode();
-            performSearch();
-            hideDateInfo();
-        });
-
-        document.getElementById('searchInput').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                if (isLuckyMode) exitLuckyMode();
-                performSearch();
-                hideDateInfo();
-            }
-        });
-
-        document.getElementById('pageSelector').addEventListener('change', function(event) {
-            if (isLuckyMode) exitLuckyMode();
-            const selectedPage = parseInt(event.target.value);
-            currentPage = selectedPage;
-            currentIndex = (currentPage - 1) * batchSize;
-            document.getElementById('results').innerHTML = '';
-            loadPage(currentPage);
-            window.scrollTo(0, 0);
-            updateCurrentProductCount(true);
-        });
-
-        document.getElementById('luckyButton').addEventListener('click', function() {
-            showRandomProducts();
-        });
-
-        window.addEventListener('scroll', checkScrollPosition);
-
-        function performSearch() {
-            isLuckyMode = false;
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const searchTerms = searchTerm.split(' ').filter(term => term.trim() !== '');
-            filteredProducts = products.filter(product =>
-                searchTerms.every(term =>
-                    product.description_full.toLowerCase().includes(term)
-                )
-            );
-            currentPage = 1;
-            currentIndex = 0;
-            document.getElementById('results').innerHTML = '';
-            updateProductCount(filteredProducts.length);
-
-            if (filteredProducts.length > 0) {
-                displayResults(filteredProducts.slice(0, batchSize));
-                currentIndex = batchSize;
-                updatePageSelector(filteredProducts.length);
-                document.getElementById('pageSelector').style.display = 'block';
-                checkScrollPosition();
-                updateCurrentProductCount(true);
-            } else {
-                document.getElementById('results').innerHTML = `<p>${translations[currentLanguage].noProductsFound}</p>`;
-                document.getElementById('pageSelector').style.display = 'none';
-            }
-        }
-
-        function loadPage(pageNumber) {
-            isLuckyMode = false;
-            const separator = document.createElement('div');
-            separator.classList.add('page-separator');
-            separator.textContent = translations[currentLanguage].pageText(pageNumber);
-            document.getElementById('results').appendChild(separator);
-
-            const startIndex = (pageNumber - 1) * batchSize;
-            const pageProducts = filteredProducts.slice(startIndex, startIndex + batchSize);
-            displayResults(pageProducts);
-            currentIndex = startIndex + batchSize;
-            updateCurrentProductCount(true);
-        }
-
-        function loadMoreProducts() {
-            if (currentIndex >= filteredProducts.length || isLuckyMode) return;
-            currentPage++;
-            loadPage(currentPage);
-        }
-
-        function displayResults(productsToDisplay) {
-            const resultsDiv = document.getElementById('results');
-            const productContainer = document.createElement('div');
-            productContainer.classList.add('product-list');
-
-            productsToDisplay.forEach((product) => {
-                const productDiv = document.createElement('div');
-                productDiv.classList.add('product');
-                const truncatedTitle = truncateTitle(product.description_full, 180);
-                productDiv.innerHTML = `
-                    <img src="${product.data_img_url}" alt="${product.data_img_alt}">
-                    <h2><a href="https://www.amazon.de${product.link}" target="_blank">${truncatedTitle}</a></h2>
-                `;
-                productContainer.appendChild(productDiv);
-            });
-
-            resultsDiv.appendChild(productContainer);
-            updateCurrentProductCount(true);
-        }
-
-        function truncateTitle(title, maxLength) {
-            return title.length > maxLength ? title.substring(0, maxLength) + "..." : title;
-        }
-
-        function updateProductCount(totalCount) {
-            const productCountSpan = document.getElementById('productCount');
-            productCountSpan.dataset.totalCount = totalCount;
-
-            if (totalCount < batchSize) {
-                productCountSpan.textContent = translations[currentLanguage].productCountTotal(totalCount);
-            } else {
-                updateCurrentProductCount(true);
-            }
-        }
-
-        function updateCurrentProductCount(forceUpdate = false) {
-            if (isLuckyMode) return;
-
-            const products = document.querySelectorAll('.product');
-            const productCountSpan = document.getElementById('productCount');
-            const totalProducts = parseInt(productCountSpan.dataset.totalCount);
-
-            if (totalProducts < batchSize) return;
-
-            if (forceUpdate && products.length > 0) {
-                const currentProductIndex = (currentPage - 1) * batchSize + 1;
-                productCountSpan.textContent = translations[currentLanguage].productCount(currentProductIndex, totalProducts);
-                return;
+            // Funktion, um das padding-top des Hauptinhalts anzupassen
+            function adjustMainPadding() {
+                const headerHeight = headerElement.offsetHeight;
+                mainElement.style.paddingTop = headerHeight + 'px';
             }
 
-            products.forEach((product, index) => {
-                const bounding = product.getBoundingClientRect();
-                if (bounding.top >= 0 && bounding.top <= window.innerHeight / 2) {
-                    const currentProductIndex = (currentPage - 1) * batchSize + index + 1;
-                    productCountSpan.textContent = translations[currentLanguage].productCount(currentProductIndex, totalProducts);
+            window.addEventListener('load', adjustMainPadding);
+            window.addEventListener('resize', adjustMainPadding);
+
+            // Theme wechseln
+            themeSwitch.addEventListener('change', () => {
+                if (themeSwitch.checked) {
+                    document.body.classList.remove('light-mode');
+                    document.querySelector('header').classList.remove('light-mode');
+                    document.querySelector('.header-top').classList.remove('light-mode');
+                    document.querySelector('.modal-content').classList.remove('light-mode');
+                } else {
+                    document.body.classList.add('light-mode');
+                    document.querySelector('header').classList.add('light-mode');
+                    document.querySelector('.header-top').classList.add('light-mode');
+                    document.querySelector('.modal-content').classList.add('light-mode');
                 }
             });
-        }
 
-        function updatePageSelector(totalProductsCount = products.length) {
-            const totalPages = Math.ceil(totalProductsCount / batchSize);
-            const pageSelector = document.getElementById('pageSelector');
-            pageSelector.innerHTML = '';
+            // Sprache wechseln
+            languageSelect.addEventListener('change', () => {
+                language = languageSelect.value;
+                // Weitere Sprachwechsel-Funktionen können hier hinzugefügt werden
+            });
 
-            for (let i = 1; i <= totalPages; i++) {
-                const option = document.createElement('option');
-                option.value = i;
-                option.textContent = translations[currentLanguage].pageText(i);
-                pageSelector.appendChild(option);
+            // Produkte laden
+            fetch('https://raw.githubusercontent.com/Duclas/duclas.github.io/refs/heads/main/AmazingWineExplorerDatabase.json')
+                .then(response => response.json())
+                .then(data => {
+                    products = data;
+                    filteredProducts = products;
+                    totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+                    populatePageSelect();
+                    displayProducts();
+                });
+
+            // Suchfunktion
+            searchButton.addEventListener('click', () => {
+                isRandomMode = false;
+                currentPage = 1;
+                const searchTerm = searchInput.value.trim();
+
+                 // Prüfen, ob der Suchbegriff ein Favoriten-Code (ASIN-Kette) ist
+                if (/^[A-Za-z0-9]{10,}$/.test(searchTerm)) { 
+                    const asins = splitAsinString(searchTerm);
+                    filteredProducts = products.filter(product => {
+                          const asin = extractASIN(product.link);
+                          return asins.includes(asin);
+                    });
+                } else {
+                    // Normale Suche durchführen
+                    const searchWords = searchTerm.toLowerCase().split(/\s+/);
+                    filteredProducts = products.filter(product => {
+                        const description = product.description_full.toLowerCase();
+                        return searchWords.every(word => description.includes(word));
+                    });
+                }
+
+                totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+                populatePageSelect();
+                displayProducts();
+            });
+
+            // Enter-Taste in der Suchleiste
+            searchInput.addEventListener('keyup', event => {
+                if (event.key === 'Enter') {
+                    searchButton.click();
+                }
+            });
+
+            // Zufällige Produkte anzeigen
+            randomButton.addEventListener('click', () => {
+                isRandomMode = true;
+                displayRandomProducts();
+            });
+
+            // Seite wechseln
+            pageSelect.addEventListener('change', () => {
+                currentPage = parseInt(pageSelect.value);
+                displayProducts();
+            });
+
+            // Favoriten anzeigen
+            favoritesButton.addEventListener('click', () => {
+                favoritesModal.style.display = 'block';
+                displayFavorites();
+            });
+
+            // Modal schließen
+            closeFavorites.onclick = () => {
+                favoritesModal.style.display = 'none';
+            };
+            window.onclick = event => {
+                if (event.target == favoritesModal) {
+                    favoritesModal.style.display = 'none';
+                }
+            };
+
+            // Favoriten-Code laden
+            loadFavoritesCodeButton.addEventListener('click', () => {
+                const code = favoritesCodeInput.value.trim();
+                if (code) {
+                    const asins = splitAsinString(code);
+                    favorites = products.filter(product => {
+                        const asin = extractASIN(product.link);
+                        return asins.includes(asin);
+                    });
+                    displayFavorites();
+                    // Visuelles Feedback
+                    loadFavoritesCodeButton.classList.add('button-feedback');
+                    setTimeout(() => {
+                        loadFavoritesCodeButton.classList.remove('button-feedback');
+                    }, 300);
+                }
+            });
+
+            // Favoriten-Code kopieren
+            copyFavoritesCodeButton.addEventListener('click', () => {
+                navigator.clipboard.writeText(favoritesCodeInput.value).then(() => {
+                    // Visuelles Feedback
+                    copyFavoritesCodeButton.classList.add('button-feedback');
+                    setTimeout(() => {
+                        copyFavoritesCodeButton.classList.remove('button-feedback');
+                    }, 300);
+                }).catch(err => {
+                    // Fehlerhandling (optional)
+                });
+            });
+
+            // Produkte anzeigen
+            function displayProducts() {
+                productContainer.innerHTML = '';
+                productContainer.className = 'product-list';
+
+                let start = (currentPage - 1) * productsPerPage;
+                let end = start + productsPerPage;
+                let pageProducts = filteredProducts.slice(start, end);
+
+                pageProducts.forEach(product => {
+                    const productItem = createProductItem(product);
+                    productContainer.appendChild(productItem);
+                });
+
+                if (currentPage < totalPages) {
+                    setupLazyLoading();
+                }
             }
 
-            pageSelector.value = currentPage;
-        }
+            // Zufällige Produkte anzeigen
+            function displayRandomProducts() {
+                productContainer.innerHTML = '';
+                productContainer.className = 'product-grid';
+                let randomProducts = [];
+                let productSubsetSize = Math.min(3000, products.length);
 
-function showRandomProducts() {
-    isLuckyMode = true;
-    if (products.length === 0) return;
-
-    const productSubsetSize = Math.min(3000, products.length); // wähle 3000 zufällige Produkte aus, um Wiederholungen zu reduzieren
-    const randomProducts = [];
-
-    for (let i = 0; i < 30; i++) { // Genau 30 Produkte für 5x6 Raster
-        const randomIndex = Math.floor(Math.random() * productSubsetSize);
-        const selectedProduct = products[randomIndex];
-
-        // Prüfe, ob das Produkt schon ausgewählt wurde, um Duplikate zu vermeiden
-        if (!randomProducts.includes(selectedProduct)) {
-            randomProducts.push(selectedProduct);
-        } else {
-            i--; // Wenn das Produkt schon ausgewählt wurde, wiederhole den Schleifendurchlauf
-        }
-    }
-
-    const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = '';
-
-    const gridContainer = document.createElement('div');
-    gridContainer.classList.add('product-grid');
-
-    randomProducts.forEach(product => {
-        const tile = document.createElement('div');
-        tile.classList.add('product-tile');
-
-        const link = document.createElement('a');
-        link.href = `https://www.amazon.de${product.link}`;
-        link.target = "_blank";
-
-        const img = document.createElement('img');
-        img.src = product.data_img_url;
-        img.alt = product.data_img_alt;
-
-        link.appendChild(img);
-        tile.appendChild(link);
-        gridContainer.appendChild(tile);
-    });
-
-    resultsDiv.appendChild(gridContainer);
-    document.getElementById('productCount').textContent = translations[currentLanguage].productCountTotal(randomProducts.length);
-}
-
-        function exitLuckyMode() {
-            isLuckyMode = false;
-            document.getElementById('results').innerHTML = '';
-            currentPage = 1;
-            currentIndex = 0;
-            loadPage(currentPage);
-            updatePageSelector();
-            updateProductCount(filteredProducts.length);
-        }
-
-        function hideDateInfo() {
-            const dateInfo = document.getElementById('dateInfo');
-            if (dateInfo) {
-                dateInfo.style.display = 'none';
+                while (randomProducts.length < 30) {
+                    const randomIndex = Math.floor(Math.random() * productSubsetSize);
+                    const selectedProduct = products[randomIndex];
+                    if (!randomProducts.includes(selectedProduct)) {
+                        randomProducts.push(selectedProduct);
+                    }
+                }
+                randomProducts.forEach(product => {
+                    const productItem = createProductItem(product);
+                    productContainer.appendChild(productItem);
+                });
             }
-        }
 
-        function checkScrollPosition() {
-            if (isLuckyMode) return;
-            updateCurrentProductCount();
+            // Produkt-Element erstellen
+            function createProductItem(product) {
+                const productItem = document.createElement('div');
+                productItem.className = 'product-item';
 
-            if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-                loadMoreProducts();
+                const img = document.createElement('img');
+                img.src = product.data_img_url;
+                img.alt = product.description_full;
+                img.addEventListener('click', () => toggleFavorite(product, img));
+
+                if (favorites.some(fav => fav.link === product.link)) {
+                    img.classList.add('favorite');
+                }
+
+                const productInfo = document.createElement('div');
+                productInfo.className = 'product-info';
+
+                const title = document.createElement('h3');
+                const titleLink = document.createElement('a');
+                titleLink.href = 'https://www.amazon.de' + product.link;
+                titleLink.target = '_blank';
+                titleLink.textContent = product.description_full;
+                title.appendChild(titleLink);
+
+                productInfo.appendChild(title);
+
+                productItem.appendChild(img);
+                productItem.appendChild(productInfo);
+
+                return productItem;
             }
-        }
 
-        // Toggle theme between day and night mode
-        document.getElementById('themeSwitch').addEventListener('change', function() {
-            const bodyClassList = document.body.classList;
-            const modeLabel = document.getElementById('modeLabel');
-            if (this.checked) {
-                bodyClassList.add('night-mode');
-                bodyClassList.remove('light-mode');
-                modeLabel.textContent = translations[currentLanguage].modeLabel;
-            } else {
-                bodyClassList.add('light-mode');
-                bodyClassList.remove('night-mode');
-                modeLabel.textContent = 'Light';
+            // Favoriten umschalten
+            function toggleFavorite(product, imgElement) {
+                const index = favorites.findIndex(fav => fav.link === product.link);
+                if (index > -1) {
+                    favorites.splice(index, 1);
+                    imgElement.classList.remove('favorite');
+                } else {
+                    favorites.push(product);
+                    imgElement.classList.add('favorite');
+                }
+                generateFavoritesCode();
             }
-        });
 
-        // Toggle language between Deutsch and Vietnamesisch
-        document.getElementById('languageSwitch').addEventListener('change', function() {
-            currentLanguage = this.checked ? 'vi' : 'de';
-            updateTranslations();
+            // Favoriten anzeigen
+            function displayFavorites() {
+                favoritesList.innerHTML = '';
+                favorites.forEach(product => {
+                    const productItem = document.createElement('div');
+                    productItem.className = 'product-item';
+
+                    const img = document.createElement('img');
+                    img.src = product.data_img_url;
+                    img.alt = product.description_full;
+
+                    const productInfo = document.createElement('div');
+                    productInfo.className = 'product-info';
+
+                    const title = document.createElement('h3');
+                    const titleLink = document.createElement('a');
+                    titleLink.href = 'https://www.amazon.de' + product.link;
+                    titleLink.target = '_blank';
+                    titleLink.textContent = product.description_full;
+                    title.appendChild(titleLink);
+
+                    productInfo.appendChild(title);
+
+                    productItem.appendChild(img);
+                    productItem.appendChild(productInfo);
+
+                    favoritesList.appendChild(productItem);
+                });
+                generateFavoritesCode();
+            }
+
+            // Favoriten-Code generieren
+            function generateFavoritesCode() {
+                const asins = favorites.map(product => extractASIN(product.link)).join('');
+                favoritesCodeInput.value = asins;
+            }
+
+            // ASIN aus dem Link extrahieren
+            function extractASIN(link) {
+                const match = link.match(/\/dp\/([A-Za-z0-9]+)/);
+                return match ? match[1] : '';
+            }
+
+            // ASIN-Kette in ASINs aufteilen
+            function splitAsinString(asinString) {
+                // ASINs sind 10 Zeichen lang
+                const asinLength = 10;
+                const asins = [];
+                for (let i = 0; i < asinString.length; i += asinLength) {
+                    asins.push(asinString.substr(i, asinLength));
+                }
+                return asins;
+            }
+
+            // Seiten-Auswahl füllen
+            function populatePageSelect() {
+                pageSelect.innerHTML = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = i;
+                    pageSelect.appendChild(option);
+                }
+                pageSelect.value = currentPage;
+            }
+
+            // Lazy Loading einrichten
+            function setupLazyLoading() {
+                let loading = false;
+                window.addEventListener('scroll', () => {
+                    if (loading) return;
+                    if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+                        loading = true;
+                        loadingMessage.style.display = 'block';
+                        setTimeout(() => {
+                            currentPage++;
+                            if (currentPage <= totalPages) {
+                                let start = (currentPage - 1) * productsPerPage;
+                                let end = start + productsPerPage;
+                                let pageProducts = filteredProducts.slice(start, end);
+                                pageProducts.forEach(product => {
+                                    const productItem = createProductItem(product);
+                                    productContainer.appendChild(productItem);
+                                });
+                                pageSelect.value = currentPage;
+                            }
+                            loading = false;
+                            loadingMessage.style.display = 'none';
+                        }, 1000);
+                    }
+                });
+            }
         });
     </script>
 </body>
