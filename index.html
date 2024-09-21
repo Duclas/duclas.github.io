@@ -9,10 +9,12 @@
             font-family: Arial, sans-serif;
             margin: 0;
             background-color: #f2f2f2;
+            color: #000;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding-top: 50px;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         #searchContainer {
@@ -24,6 +26,7 @@
             background-color: #f2f2f2;
             padding: 20px 0;
             z-index: 1000;
+            transition: background-color 0.3s;
         }
 
         #dateInfo {
@@ -108,6 +111,55 @@
         .product a:hover {
             text-decoration: underline;
         }
+
+        #themeToggle {
+            margin-top: 20px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #4285f4;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
     </style>
 </head>
 <body>
@@ -118,6 +170,13 @@
         <input type="text" id="searchInput" placeholder="Produkt suchen...">
         <button id="searchButton">Suchen</button>
         <button id="showAllButton">Alle Produkte anzeigen</button>
+        <div id="themeToggle">
+            <label class="switch">
+                <input type="checkbox" id="themeSwitch">
+                <span class="slider"></span>
+            </label>
+            Day / Night Mode
+        </div>
         <div id="productCount"></div>
     </div>
 
@@ -131,7 +190,6 @@
             .then(response => response.json())
             .then(data => {
                 products = data;
-                // Initialisierung ohne Produkte anzuzeigen
                 updateProductCount(0);
             })
             .catch(error => console.error('Error loading the JSON file:', error));
@@ -141,7 +199,6 @@
             const reader = new FileReader();
             reader.onload = function(event) {
                 products = JSON.parse(event.target.result);
-                // Nach dem Hochladen wird die Produktanzahl aktualisiert, aber keine Produkte angezeigt
                 updateProductCount(0);
             };
             reader.readAsText(file);
@@ -202,6 +259,19 @@
                 dateInfo.style.display = 'none';
             }
         }
+
+        // Toggle theme between day and night mode
+        document.getElementById('themeSwitch').addEventListener('change', function() {
+            if (this.checked) {
+                document.body.style.backgroundColor = '#000';
+                document.body.style.color = '#fff';
+                document.getElementById('searchContainer').style.backgroundColor = '#000';
+            } else {
+                document.body.style.backgroundColor = '#f2f2f2';
+                document.body.style.color = '#000';
+                document.getElementById('searchContainer').style.backgroundColor = '#f2f2f2';
+            }
+        });
     </script>
 
 </body>
