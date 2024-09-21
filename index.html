@@ -8,8 +8,8 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
-            background-color: #f5f5f7;
-            color: #1d1d1f;
+            background-color: #1d1d1f;
+            color: #f5f5f7;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,10 +22,10 @@
             text-align: center;
             position: sticky;
             top: 0;
-            background-color: #f5f5f7;
+            background-color: #1d1d1f;
             padding: 10px 0;
             z-index: 1000;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid #333;
         }
 
         #dateInfo {
@@ -38,10 +38,12 @@
             padding: 10px 20px;
             width: 90%;
             max-width: 400px;
-            border: 1px solid #d1d1d6;
+            border: 1px solid #666;
             border-radius: 20px;
             font-size: 16px;
             outline: none;
+            background-color: #333;
+            color: #f5f5f7;
             transition: border-color 0.2s;
         }
 
@@ -79,7 +81,7 @@
         }
 
         .product {
-            background-color: white;
+            background-color: #333;
             padding: 10px;
             margin-bottom: 15px;
             border-radius: 10px;
@@ -87,7 +89,7 @@
             display: flex;
             align-items: center;
             transition: transform 0.2s;
-            color: #1d1d1f;
+            color: #f5f5f7;
         }
 
         .product:hover {
@@ -111,7 +113,7 @@
 
         .product a {
             text-decoration: none;
-            color: #007aff;
+            color: #82aaff;
         }
 
         .product a:hover {
@@ -171,9 +173,9 @@
             margin-top: 10px;
             padding: 8px;
             border-radius: 20px;
-            border: 1px solid #d1d1d6;
-            background-color: #f5f5f7;
-            color: #1d1d1f;
+            border: 1px solid #666;
+            background-color: #333;
+            color: #f5f5f7;
             font-size: 16px;
             outline: none;
             transition: border-color 0.2s;
@@ -190,37 +192,37 @@
             color: #6e6e73;
         }
 
-        body.night-mode {
-            background-color: #1d1d1f;
-            color: #f5f5f7;
+        body.light-mode {
+            background-color: #f5f5f7;
+            color: #1d1d1f;
         }
 
-        body.night-mode .product {
-            background-color: #333;
-            color: #f5f5f7;
+        body.light-mode .product {
+            background-color: white;
+            color: #1d1d1f;
         }
 
-        body.night-mode #searchContainer {
-            background-color: #1d1d1f;
+        body.light-mode #searchContainer {
+            background-color: #f5f5f7;
         }
 
-        body.night-mode #searchInput,
-        body.night-mode #pageSelector {
-            background-color: #333;
-            color: #f5f5f7;
-            border-color: #666;
+        body.light-mode #searchInput,
+        body.light-mode #pageSelector {
+            background-color: #f5f5f7;
+            color: #1d1d1f;
+            border-color: #d1d1d6;
         }
 
-        body.night-mode #pageSelector:focus {
+        body.light-mode #pageSelector:focus {
             border-color: #007aff;
         }
 
-        body.night-mode a {
-            color: #82aaff;
+        body.light-mode a {
+            color: #007aff;
         }
     </style>
 </head>
-<body>
+<body class="night-mode">
 
     <div id="searchContainer">
         <div id="dateInfo">Datenbank: 21.09.24</div>
@@ -229,10 +231,10 @@
         <button id="searchButton">Suchen</button>
         <div id="themeToggle">
             <label class="switch">
-                <input type="checkbox" id="themeSwitch">
+                <input type="checkbox" id="themeSwitch" checked>
                 <span class="slider"></span>
             </label>
-            Day / Night Mode
+            <span id="modeLabel">Darkmode</span>
         </div>
         <select id="pageSelector">
             <option value="1">Seite 1</option>
@@ -386,10 +388,16 @@
 
         // Toggle theme between day and night mode
         document.getElementById('themeSwitch').addEventListener('change', function() {
+            const bodyClassList = document.body.classList;
+            const modeLabel = document.getElementById('modeLabel');
             if (this.checked) {
-                document.body.classList.add('night-mode');
+                bodyClassList.add('night-mode');
+                bodyClassList.remove('light-mode');
+                modeLabel.textContent = 'Darkmode';
             } else {
-                document.body.classList.remove('night-mode');
+                bodyClassList.add('light-mode');
+                bodyClassList.remove('night-mode');
+                modeLabel.textContent = 'Lightmode';
             }
         });
     </script>
