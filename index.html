@@ -561,39 +561,51 @@
             pageSelector.value = currentPage;
         }
 
-        function showRandomProducts() {
-            isLuckyMode = true;
-            if (products.length === 0) return;
+function showRandomProducts() {
+    isLuckyMode = true;
+    if (products.length === 0) return;
 
-            const shuffledProducts = [...products].sort(() => 0.5 - Math.random());
-            const randomProducts = shuffledProducts.slice(0, 30); // Genau 30 Produkte für 5x6 Raster
+    const productSubsetSize = Math.min(3000, products.length); // wähle 3000 zufällige Produkte aus, um Wiederholungen zu reduzieren
+    const randomProducts = [];
 
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
+    for (let i = 0; i < 30; i++) { // Genau 30 Produkte für 5x6 Raster
+        const randomIndex = Math.floor(Math.random() * productSubsetSize);
+        const selectedProduct = products[randomIndex];
 
-            const gridContainer = document.createElement('div');
-            gridContainer.classList.add('product-grid');
-
-            randomProducts.forEach(product => {
-                const tile = document.createElement('div');
-                tile.classList.add('product-tile');
-
-                const link = document.createElement('a');
-                link.href = `https://www.amazon.de${product.link}`;
-                link.target = "_blank";
-
-                const img = document.createElement('img');
-                img.src = product.data_img_url;
-                img.alt = product.data_img_alt;
-
-                link.appendChild(img);
-                tile.appendChild(link);
-                gridContainer.appendChild(tile);
-            });
-
-            resultsDiv.appendChild(gridContainer);
-            document.getElementById('productCount').textContent = translations[currentLanguage].productCountTotal(randomProducts.length);
+        // Prüfe, ob das Produkt schon ausgewählt wurde, um Duplikate zu vermeiden
+        if (!randomProducts.includes(selectedProduct)) {
+            randomProducts.push(selectedProduct);
+        } else {
+            i--; // Wenn das Produkt schon ausgewählt wurde, wiederhole den Schleifendurchlauf
         }
+    }
+
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = '';
+
+    const gridContainer = document.createElement('div');
+    gridContainer.classList.add('product-grid');
+
+    randomProducts.forEach(product => {
+        const tile = document.createElement('div');
+        tile.classList.add('product-tile');
+
+        const link = document.createElement('a');
+        link.href = `https://www.amazon.de${product.link}`;
+        link.target = "_blank";
+
+        const img = document.createElement('img');
+        img.src = product.data_img_url;
+        img.alt = product.data_img_alt;
+
+        link.appendChild(img);
+        tile.appendChild(link);
+        gridContainer.appendChild(tile);
+    });
+
+    resultsDiv.appendChild(gridContainer);
+    document.getElementById('productCount').textContent = translations[currentLanguage].productCountTotal(randomProducts.length);
+}
 
         function exitLuckyMode() {
             isLuckyMode = false;
