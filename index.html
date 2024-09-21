@@ -42,7 +42,7 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            max-width: 300px;
+            max-width: 350px;
             margin-top: 5px;
             align-items: center;
         }
@@ -90,14 +90,26 @@
             margin-top: 10px;
             font-weight: bold;
             color: #6e6e73;
-            font-size: 12px; /* Kleinere Schriftgröße */
+            font-size: 12px;
         }
 
         #results {
             margin-top: 20px;
             width: 100%;
-            max-width: 600px;
+            max-width: 1000px;
             padding-bottom: 20px;
+        }
+
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
         }
 
         .product {
@@ -110,6 +122,7 @@
             align-items: center;
             transition: transform 0.2s;
             color: #f5f5f7;
+            width: 100%;
         }
 
         .product:hover {
@@ -130,11 +143,11 @@
             flex-grow: 1;
             font-weight: 500;
             display: -webkit-box;
-            -webkit-line-clamp: 2; /* Limit the title to 2 lines */
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-height: 44px; /* Roughly 2 lines of text */
+            max-height: 44px;
         }
 
         .product a {
@@ -144,6 +157,20 @@
 
         .product a:hover {
             text-decoration: underline;
+        }
+
+        .product-tile {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .product-tile img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .switch {
@@ -209,6 +236,22 @@
             border-color: #007aff;
         }
 
+        #luckyButton {
+            margin-left: 10px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            background-color: #ff9500;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #luckyButton:hover {
+            background-color: #cc7a00;
+        }
+
         .page-separator {
             text-align: center;
             margin: 20px 0;
@@ -231,13 +274,15 @@
         }
 
         body.light-mode #searchInput,
-        body.light-mode #pageSelector {
+        body.light-mode #pageSelector,
+        body.light-mode #luckyButton {
             background-color: #f5f5f7;
             color: #1d1d1f;
             border-color: #d1d1d6;
         }
 
-        body.light-mode #pageSelector:focus {
+        body.light-mode #pageSelector:focus,
+        body.light-mode #luckyButton:focus {
             border-color: #007aff;
         }
 
@@ -249,7 +294,7 @@
 <body class="night-mode">
 
     <div id="searchContainer">
-        <div id="dateInfo">Stand 21.09.2024 17:26 Uhr</div>
+        <div id="dateInfo">Stand 21.09.2024 15:36 Uhr</div>
         <input type="file" id="fileInput" accept=".json" style="display: none;">
         <div id="searchBar">
             <input type="text" id="searchInput" placeholder="Produkt suchen...">
@@ -273,6 +318,7 @@
             <select id="pageSelector">
                 <option value="1">Seite 1</option>
             </select>
+            <button id="luckyButton">Random</button>
         </div>
         <div id="productCount"></div>
     </div>
@@ -284,7 +330,8 @@
         let currentIndex = 0;
         const batchSize = 50;
         let currentPage = 1;
-        let filteredProducts = []; // Variable to hold the search results
+        let filteredProducts = [];
+        let isLuckyMode = false; // Flag für den "I'm Feeling Lucky"-Modus
 
         const translations = {
             de: {
@@ -321,16 +368,16 @@
             updatePageSelector();
         }
 
-        // Fetch the JSON file from GitHub
         fetch('https://raw.githubusercontent.com/Duclas/duclas.github.io/refs/heads/main/AmazingWineExplorerDatabase.json')
             .then(response => response.json())
             .then(data => {
                 products = data;
+                filteredProducts = products; // Initialisierung
                 updateProductCount(products.length);
-                loadPage(currentPage); // Load the first page
-                updatePageSelector(); // Populate the page selector dropdown
-                checkScrollPosition(); // Enable infinite scrolling
-                updateCurrentProductCount(true); // Update product count immediately
+                loadPage(currentPage);
+                updatePageSelector();
+                checkScrollPosition();
+                updateCurrentProductCount(true);
             })
             .catch(error => console.error('Error loading the JSON file:', error));
 
@@ -339,14 +386,15 @@
             const reader = new FileReader();
             reader.onload = function(event) {
                 products = JSON.parse(event.target.result);
+                filteredProducts = products;
                 updateProductCount(products.length);
-                currentIndex = 0; // Reset index
-                currentPage = 1; // Reset to first page
-                document.getElementById('results').innerHTML = ''; // Clear previous results
-                loadPage(currentPage); // Load the first page
-                updatePageSelector(); // Populate the page selector dropdown
-                checkScrollPosition(); // Enable infinite scrolling
-                updateCurrentProductCount(true); // Update product count immediately
+                currentIndex = 0;
+                currentPage = 1;
+                document.getElementById('results').innerHTML = '';
+                loadPage(currentPage);
+                updatePageSelector();
+                checkScrollPosition();
+                updateCurrentProductCount(true);
             };
             reader.readAsText(file);
         });
@@ -367,15 +415,20 @@
             const selectedPage = parseInt(event.target.value);
             currentPage = selectedPage;
             currentIndex = (currentPage - 1) * batchSize;
-            document.getElementById('results').innerHTML = ''; // Clear previous results
-            loadPage(currentPage); // Load the selected page
-            window.scrollTo(0, 0); // Scroll to the top of the page
-            updateCurrentProductCount(true); // Update product count immediately
+            document.getElementById('results').innerHTML = '';
+            loadPage(currentPage);
+            window.scrollTo(0, 0);
+            updateCurrentProductCount(true);
+        });
+
+        document.getElementById('luckyButton').addEventListener('click', function() {
+            showRandomProducts();
         });
 
         window.addEventListener('scroll', checkScrollPosition);
 
         function performSearch() {
+            isLuckyMode = false; // Normaler Modus
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const searchTerms = searchTerm.split(' ').filter(term => term.trim() !== '');
             filteredProducts = products.filter(product =>
@@ -389,44 +442,44 @@
             updateProductCount(filteredProducts.length);
 
             if (filteredProducts.length > 0) {
-                displayResults(filteredProducts.slice(0, batchSize)); // Display only the first batch
+                displayResults(filteredProducts.slice(0, batchSize));
                 currentIndex = batchSize;
-                updatePageSelector(filteredProducts.length); // Populate the page selector dropdown based on filtered results
-                document.getElementById('pageSelector').style.display = 'block'; // Show page selector if more than 50 results
-                checkScrollPosition(); // Enable infinite scrolling
-                updateCurrentProductCount(true); // Update product count immediately
+                updatePageSelector(filteredProducts.length);
+                document.getElementById('pageSelector').style.display = 'block';
+                checkScrollPosition();
+                updateCurrentProductCount(true);
             } else {
                 document.getElementById('results').innerHTML = `<p>${translations[currentLanguage].noProductsFound}</p>`;
-                document.getElementById('pageSelector').style.display = 'none'; // Hide page selector if no results
+                document.getElementById('pageSelector').style.display = 'none';
             }
         }
 
         function loadPage(pageNumber) {
-            // Show the page number separator for the next page
-            if (pageNumber > 1 || currentIndex > 0) { // Avoid showing "Seite 2" before the first page loads
-                const separator = document.createElement('div');
-                separator.classList.add('page-separator');
-                separator.textContent = translations[currentLanguage].pageText(pageNumber);
-                document.getElementById('results').appendChild(separator);
-            }
+            isLuckyMode = false; // Normaler Modus
+            const separator = document.createElement('div');
+            separator.classList.add('page-separator');
+            separator.textContent = translations[currentLanguage].pageText(pageNumber);
+            document.getElementById('results').appendChild(separator);
 
             const startIndex = (pageNumber - 1) * batchSize;
             const pageProducts = filteredProducts.slice(startIndex, startIndex + batchSize);
             displayResults(pageProducts);
             currentIndex = startIndex + batchSize;
-            updateCurrentProductCount(true); // Update product count immediately
+            updateCurrentProductCount(true);
         }
 
         function loadMoreProducts() {
-            if (currentIndex >= filteredProducts.length) return;
-
+            if (currentIndex >= filteredProducts.length || isLuckyMode) return;
             currentPage++;
             loadPage(currentPage);
         }
 
         function displayResults(productsToDisplay) {
             const resultsDiv = document.getElementById('results');
-            productsToDisplay.forEach((product, index) => {
+            const productContainer = document.createElement('div');
+            productContainer.classList.add('product-list');
+
+            productsToDisplay.forEach((product) => {
                 const productDiv = document.createElement('div');
                 productDiv.classList.add('product');
                 const truncatedTitle = truncateTitle(product.description_full, 180);
@@ -434,10 +487,11 @@
                     <img src="${product.data_img_url}" alt="${product.data_img_alt}">
                     <h2><a href="https://www.amazon.de${product.link}" target="_blank">${truncatedTitle}</a></h2>
                 `;
-                resultsDiv.appendChild(productDiv);
+                productContainer.appendChild(productDiv);
             });
 
-            updateCurrentProductCount(true); // Update product count immediately
+            resultsDiv.appendChild(productContainer);
+            updateCurrentProductCount(true);
         }
 
         function truncateTitle(title, maxLength) {
@@ -449,26 +503,22 @@
             productCountSpan.dataset.totalCount = totalCount;
 
             if (totalCount < batchSize) {
-                // Wenn weniger als 50 Produkte, zeige nur die Gesamtanzahl
                 productCountSpan.textContent = translations[currentLanguage].productCountTotal(totalCount);
             } else {
-                // Sonst initialisiere die Produktanzeige
                 updateCurrentProductCount(true);
             }
         }
 
         function updateCurrentProductCount(forceUpdate = false) {
+            if (isLuckyMode) return;
+
             const products = document.querySelectorAll('.product');
             const productCountSpan = document.getElementById('productCount');
             const totalProducts = parseInt(productCountSpan.dataset.totalCount);
 
-            if (totalProducts < batchSize) {
-                // Wenn weniger als 50 Produkte, keine Aktualisierung notwendig
-                return;
-            }
+            if (totalProducts < batchSize) return;
 
             if (forceUpdate && products.length > 0) {
-                // Zeige das erste Produkt an
                 const currentProductIndex = (currentPage - 1) * batchSize + 1;
                 productCountSpan.textContent = translations[currentLanguage].productCount(currentProductIndex, totalProducts);
                 return;
@@ -486,7 +536,7 @@
         function updatePageSelector(totalProductsCount = products.length) {
             const totalPages = Math.ceil(totalProductsCount / batchSize);
             const pageSelector = document.getElementById('pageSelector');
-            pageSelector.innerHTML = ''; // Clear existing options
+            pageSelector.innerHTML = '';
 
             for (let i = 1; i <= totalPages; i++) {
                 const option = document.createElement('option');
@@ -495,7 +545,41 @@
                 pageSelector.appendChild(option);
             }
 
-            pageSelector.value = currentPage; // Set the selector to the current page
+            pageSelector.value = currentPage;
+        }
+
+        function showRandomProducts() {
+            isLuckyMode = true;
+            if (products.length === 0) return;
+
+            const shuffledProducts = [...products].sort(() => 0.5 - Math.random());
+            const randomProducts = shuffledProducts.slice(0, batchSize);
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            const gridContainer = document.createElement('div');
+            gridContainer.classList.add('product-grid');
+
+            randomProducts.forEach(product => {
+                const tile = document.createElement('div');
+                tile.classList.add('product-tile');
+
+                const link = document.createElement('a');
+                link.href = `https://www.amazon.de${product.link}`;
+                link.target = "_blank";
+
+                const img = document.createElement('img');
+                img.src = product.data_img_url;
+                img.alt = product.data_img_alt;
+
+                link.appendChild(img);
+                tile.appendChild(link);
+                gridContainer.appendChild(tile);
+            });
+
+            resultsDiv.appendChild(gridContainer);
+            document.getElementById('productCount').textContent = translations[currentLanguage].productCountTotal(randomProducts.length);
         }
 
         function hideDateInfo() {
@@ -513,7 +597,6 @@
             }
         }
 
-        // Toggle theme between day and night mode
         document.getElementById('themeSwitch').addEventListener('change', function() {
             const bodyClassList = document.body.classList;
             const modeLabel = document.getElementById('modeLabel');
@@ -528,7 +611,6 @@
             }
         });
 
-        // Toggle language between Deutsch and Vietnamesisch
         document.getElementById('languageSwitch').addEventListener('change', function() {
             currentLanguage = this.checked ? 'vi' : 'de';
             updateTranslations();
