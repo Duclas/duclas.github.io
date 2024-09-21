@@ -129,6 +129,12 @@
             color: inherit;
             flex-grow: 1;
             font-weight: 500;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Limit the title to 2 lines */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-height: 44px; /* Roughly 2 lines of text */
         }
 
         .product a {
@@ -243,7 +249,7 @@
 <body class="night-mode">
 
     <div id="searchContainer">
-        <div id="dateInfo">Stand 21.09.2024 17:00 Uhr</div>
+        <div id="dateInfo">Stand 21.09.2024 17:08 Uhr</div>
         <input type="file" id="fileInput" accept=".json" style="display: none;">
         <div id="searchBar">
             <input type="text" id="searchInput" placeholder="Produkt suchen...">
@@ -421,14 +427,19 @@
             productsToDisplay.forEach((product, index) => {
                 const productDiv = document.createElement('div');
                 productDiv.classList.add('product');
+                const truncatedTitle = truncateTitle(product.description_full, 180);
                 productDiv.innerHTML = `
                     <img src="${product.data_img_url}" alt="${product.data_img_alt}">
-                    <h2><a href="https://www.amazon.de${product.link}" target="_blank">${product.description_full}</a></h2>
+                    <h2><a href="https://www.amazon.de${product.link}" target="_blank">${truncatedTitle}</a></h2>
                 `;
                 resultsDiv.appendChild(productDiv);
             });
 
             updateCurrentProductCount(true); // Update product count immediately
+        }
+
+        function truncateTitle(title, maxLength) {
+            return title.length > maxLength ? title.substring(0, maxLength) + "..." : title;
         }
 
         function updateProductCount(totalCount) {
