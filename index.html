@@ -23,9 +23,27 @@
             position: sticky;
             top: 0;
             background-color: #1d1d1f;
-            padding: 10px 0;
+            padding: 10px 10px 5px;
             z-index: 1000;
             border-bottom: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #searchBar {
+            display: flex;
+            width: 90%;
+            max-width: 400px;
+            margin-top: 10px;
+        }
+
+        #toggleContainer {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 300px;
+            margin-top: 5px;
         }
 
         #dateInfo {
@@ -36,15 +54,15 @@
 
         #searchInput {
             padding: 10px 20px;
-            width: 90%;
-            max-width: 400px;
+            width: 100%;
             border: 1px solid #666;
-            border-radius: 20px;
+            border-radius: 20px 0 0 20px;
             font-size: 16px;
             outline: none;
             background-color: #333;
             color: #f5f5f7;
             transition: border-color 0.2s;
+            border-right: none;
         }
 
         #searchInput:focus {
@@ -52,15 +70,15 @@
         }
 
         #searchButton {
-            margin-top: 10px;
             padding: 10px 20px;
             border: none;
-            border-radius: 20px;
+            border-radius: 0 20px 20px 0;
             background-color: #007aff;
             color: white;
             font-size: 16px;
             cursor: pointer;
             transition: background-color 0.2s;
+            border-left: none;
         }
 
         #searchButton:hover {
@@ -71,6 +89,7 @@
             margin-top: 10px;
             font-weight: bold;
             color: #6e6e73;
+            font-size: 12px; /* Kleinere Schriftgröße */
         }
 
         #results {
@@ -120,15 +139,12 @@
             text-decoration: underline;
         }
 
-        #themeToggle {
-            margin-top: 10px;
-        }
-
         .switch {
             position: relative;
             display: inline-block;
             width: 52px;
             height: 32px;
+            margin-right: 10px;
         }
 
         .switch input {
@@ -179,6 +195,7 @@
             font-size: 16px;
             outline: none;
             transition: border-color 0.2s;
+            display: none;
         }
 
         #pageSelector:focus {
@@ -225,16 +242,27 @@
 <body class="night-mode">
 
     <div id="searchContainer">
-        <div id="dateInfo">Stand 21.09.2024 15:43 Uhr</div>
+        <div id="dateInfo">Stand 21.09.2024 16:42 Uhr</div>
         <input type="file" id="fileInput" accept=".json" style="display: none;">
-        <input type="text" id="searchInput" placeholder="Produkt suchen...">
-        <button id="searchButton">Suchen</button>
-        <div id="themeToggle">
-            <label class="switch">
-                <input type="checkbox" id="themeSwitch" checked>
-                <span class="slider"></span>
-            </label>
-            <span id="modeLabel">Darkmode</span>
+        <div id="searchBar">
+            <input type="text" id="searchInput" placeholder="Produkt suchen...">
+            <button id="searchButton">Suchen</button>
+        </div>
+        <div id="toggleContainer">
+            <div>
+                <label class="switch">
+                    <input type="checkbox" id="themeSwitch" checked>
+                    <span class="slider"></span>
+                </label>
+                <span id="modeLabel">Darkmode</span>
+            </div>
+            <div>
+                <label class="switch">
+                    <input type="checkbox" id="languageSwitch">
+                    <span class="slider"></span>
+                </label>
+                <span id="languageLabel">Tiếng Việt</span>
+            </div>
         </div>
         <select id="pageSelector">
             <option value="1">Seite 1</option>
@@ -249,6 +277,40 @@
         let currentIndex = 0;
         const batchSize = 50;
         let currentPage = 1;
+        let filteredProducts = []; // Variable to hold the search results
+
+        const translations = {
+            de: {
+                searchPlaceholder: "Produkt suchen...",
+                searchButton: "Suchen",
+                modeLabel: "Darkmode",
+                languageLabel: "Tiếng Việt",
+                productCount: (count) => `${count} Produkt${count !== 1 ? 'e' : ''}`,
+                noProductsFound: "Keine Produkte gefunden.",
+                pageText: (page) => `Seite ${page}`,
+            },
+            vi: {
+                searchPlaceholder: "Tìm kiếm sản phẩm...",
+                searchButton: "Tìm kiếm",
+                modeLabel: "Chế độ tối",
+                languageLabel: "Tiếng Việt",
+                productCount: (count) => `${count} sản phẩm`,
+                noProductsFound: "Không tìm thấy sản phẩm nào.",
+                pageText: (page) => `Trang ${page}`,
+            }
+        };
+
+        let currentLanguage = 'de';
+
+        function updateTranslations() {
+            const translation = translations[currentLanguage];
+            document.getElementById('searchInput').placeholder = translation.searchPlaceholder;
+            document.getElementById('searchButton').textContent = translation.searchButton;
+            document.getElementById('modeLabel').textContent = translation.modeLabel;
+            document.getElementById('languageLabel').textContent = translation.languageLabel;
+            updateProductCount(filteredProducts.length || products.length);
+            updatePageSelector();
+        }
 
         // Fetch the JSON file from GitHub
         fetch('https://raw.githubusercontent.com/Duclas/duclas.github.io/refs/heads/main/AmazingWineExplorerDatabase.json')
@@ -258,7 +320,7 @@
                 updateProductCount(products.length);
                 loadPage(currentPage); // Load the first page
                 updatePageSelector(); // Populate the page selector dropdown
-                checkScrollPosition();
+                checkScrollPosition(); // Enable infinite scrolling
             })
             .catch(error => console.error('Error loading the JSON file:', error));
 
@@ -273,7 +335,7 @@
                 document.getElementById('results').innerHTML = ''; // Clear previous results
                 loadPage(currentPage); // Load the first page
                 updatePageSelector(); // Populate the page selector dropdown
-                checkScrollPosition();
+                checkScrollPosition(); // Enable infinite scrolling
             };
             reader.readAsText(file);
         });
@@ -296,7 +358,7 @@
             currentIndex = (currentPage - 1) * batchSize;
             document.getElementById('results').innerHTML = ''; // Clear previous results
             loadPage(currentPage); // Load the selected page
-            checkScrollPosition();
+            window.scrollTo(0, 0); // Scroll to the top of the page
         });
 
         window.addEventListener('scroll', checkScrollPosition);
@@ -304,7 +366,7 @@
         function performSearch() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const searchTerms = searchTerm.split(' ').filter(term => term.trim() !== '');
-            const filteredProducts = products.filter(product => 
+            filteredProducts = products.filter(product => 
                 searchTerms.every(term => 
                     product.description_full.toLowerCase().includes(term)
                 )
@@ -314,36 +376,38 @@
             document.getElementById('results').innerHTML = '';
             updateProductCount(filteredProducts.length);
 
-            if (filteredProducts.length > 50) {
+            if (filteredProducts.length > 0) {
                 displayResults(filteredProducts.slice(0, batchSize)); // Display only the first batch
                 currentIndex = batchSize;
                 updatePageSelector(filteredProducts.length); // Populate the page selector dropdown based on filtered results
+                document.getElementById('pageSelector').style.display = 'block'; // Show page selector if more than 50 results
+                checkScrollPosition(); // Enable infinite scrolling
             } else {
-                displayResults(filteredProducts); // Display all results if 50 or fewer
+                document.getElementById('results').innerHTML = `<p>${translations[currentLanguage].noProductsFound}</p>`;
+                document.getElementById('pageSelector').style.display = 'none'; // Hide page selector if no results
             }
-            checkScrollPosition();
         }
 
         function loadPage(pageNumber) {
-            const startIndex = (pageNumber - 1) * batchSize;
-            const pageProducts = products.slice(startIndex, startIndex + batchSize);
-            displayResults(pageProducts);
-            currentIndex = startIndex + batchSize;
-
-            // Show the next page separator only if there are more pages
-            if (currentIndex < products.length) {
+            // Show the page number separator for the next page
+            if (pageNumber > 1 || currentIndex > 0) { // Avoid showing "Seite 2" before the first page loads
                 const separator = document.createElement('div');
                 separator.classList.add('page-separator');
-                separator.textContent = `Seite ${pageNumber + 1}`;
+                separator.textContent = translations[currentLanguage].pageText(pageNumber);
                 document.getElementById('results').appendChild(separator);
             }
+
+            const startIndex = (pageNumber - 1) * batchSize;
+            const pageProducts = filteredProducts.slice(startIndex, startIndex + batchSize);
+            displayResults(pageProducts);
+            currentIndex = startIndex + batchSize;
         }
 
         function loadMoreProducts() {
-            if (currentIndex >= products.length) return;
+            if (currentIndex >= filteredProducts.length) return;
 
-            const nextPage = Math.floor(currentIndex / batchSize) + 1;
-            loadPage(nextPage);
+            currentPage++;
+            loadPage(currentPage);
         }
 
         function displayResults(productsToDisplay) {
@@ -361,7 +425,7 @@
 
         function updateProductCount(totalCount) {
             const productCountSpan = document.getElementById('productCount');
-            productCountSpan.textContent = `${totalCount} Produkt${totalCount !== 1 ? 'e' : ''}`;
+            productCountSpan.textContent = translations[currentLanguage].productCount(totalCount);
         }
 
         function updatePageSelector(totalProductsCount = products.length) {
@@ -372,7 +436,7 @@
             for (let i = 1; i <= totalPages; i++) {
                 const option = document.createElement('option');
                 option.value = i;
-                option.textContent = `Seite ${i}`;
+                option.textContent = translations[currentLanguage].pageText(i);
                 pageSelector.appendChild(option);
             }
 
@@ -399,12 +463,18 @@
             if (this.checked) {
                 bodyClassList.add('night-mode');
                 bodyClassList.remove('light-mode');
-                modeLabel.textContent = 'Darkmode';
+                modeLabel.textContent = translations[currentLanguage].modeLabel;
             } else {
                 bodyClassList.add('light-mode');
                 bodyClassList.remove('night-mode');
                 modeLabel.textContent = 'Lightmode';
             }
+        });
+
+        // Toggle language between Deutsch and Vietnamesisch
+        document.getElementById('languageSwitch').addEventListener('change', function() {
+            currentLanguage = this.checked ? 'vi' : 'de';
+            updateTranslations();
         });
     </script>
 
