@@ -312,9 +312,15 @@
             currentPage = 1;
             currentIndex = 0;
             document.getElementById('results').innerHTML = '';
-            displayResults(filteredProducts.slice(0, batchSize)); // Display only the first batch
-            currentIndex = batchSize;
             updateProductCount(filteredProducts.length);
+
+            if (filteredProducts.length > 50) {
+                displayResults(filteredProducts.slice(0, batchSize)); // Display only the first batch
+                currentIndex = batchSize;
+                updatePageSelector(filteredProducts.length); // Populate the page selector dropdown based on filtered results
+            } else {
+                displayResults(filteredProducts); // Display all results if 50 or fewer
+            }
             checkScrollPosition();
         }
 
@@ -358,8 +364,8 @@
             productCountSpan.textContent = `${totalCount} Produkt${totalCount !== 1 ? 'e' : ''}`;
         }
 
-        function updatePageSelector() {
-            const totalPages = Math.ceil(products.length / batchSize);
+        function updatePageSelector(totalProductsCount = products.length) {
+            const totalPages = Math.ceil(totalProductsCount / batchSize);
             const pageSelector = document.getElementById('pageSelector');
             pageSelector.innerHTML = ''; // Clear existing options
 
