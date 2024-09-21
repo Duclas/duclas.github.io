@@ -14,7 +14,6 @@
             flex-direction: column;
             align-items: center;
             padding-top: 20px;
-            transition: background-color 0.3s, color 0.3s;
         }
 
         #searchContainer {
@@ -27,7 +26,6 @@
             padding: 10px 0;
             z-index: 1000;
             border-bottom: 1px solid #333;
-            transition: background-color 0.3s, color 0.3s;
         }
 
         #dateInfo {
@@ -36,15 +34,9 @@
             margin-bottom: 8px;
         }
 
-        #searchForm {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
         #searchInput {
             padding: 10px 20px;
-            width: 70%;
+            width: 90%;
             max-width: 400px;
             border: 1px solid #666;
             border-radius: 20px;
@@ -53,7 +45,6 @@
             background-color: #333;
             color: #f5f5f7;
             transition: border-color 0.2s;
-            margin-right: 10px;
         }
 
         #searchInput:focus {
@@ -61,6 +52,7 @@
         }
 
         #searchButton {
+            margin-top: 10px;
             padding: 10px 20px;
             border: none;
             border-radius: 20px;
@@ -79,88 +71,13 @@
             margin-top: 10px;
             font-weight: bold;
             color: #6e6e73;
-            font-size: 12px;
         }
 
-        #controlsContainer {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 10px;
-        }
-
-        #pageSelector {
-            padding: 8px;
-            border-radius: 20px;
-            border: 1px solid #666;
-            background-color: #333;
-            color: #f5f5f7;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.2s;
-            margin-right: 10px;
-        }
-
-        #pageSelector:focus {
-            border-color: #007aff;
-        }
-
-        #themeToggle {
-            display: flex;
-            align-items: center;
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 52px;
-            height: 32px;
-            margin-left: 10px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #d1d1d6;
-            transition: .4s;
-            border-radius: 16px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 24px;
-            width: 24px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #007aff;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
-
-        .page-separator {
-            text-align: center;
-            margin: 20px 0;
-            font-weight: bold;
-            color: #6e6e73;
+        #results {
+            margin-top: 20px;
+            width: 100%;
+            max-width: 600px;
+            padding-bottom: 20px;
         }
 
         .product {
@@ -203,6 +120,78 @@
             text-decoration: underline;
         }
 
+        #themeToggle {
+            margin-top: 10px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 32px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #d1d1d6;
+            transition: .4s;
+            border-radius: 16px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #007aff;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        #pageSelector {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 20px;
+            border: 1px solid #666;
+            background-color: #333;
+            color: #f5f5f7;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #pageSelector:focus {
+            border-color: #007aff;
+        }
+
+        .page-separator {
+            text-align: center;
+            margin: 20px 0;
+            font-weight: bold;
+            color: #6e6e73;
+        }
+
         body.light-mode {
             background-color: #f5f5f7;
             color: #1d1d1f;
@@ -231,33 +220,25 @@
         body.light-mode a {
             color: #007aff;
         }
-
-        .theme-label {
-            margin-left: 10px;
-            font-size: 16px;
-        }
     </style>
 </head>
 <body class="night-mode">
 
     <div id="searchContainer">
-        <div id="dateInfo">Datenbank: 21.09.24</div>
-        <form id="searchForm">
-            <input type="text" id="searchInput" placeholder="Produkt suchen...">
-            <button id="searchButton" type="button">Suchen</button>
-        </form>
-        <div id="controlsContainer">
-            <select id="pageSelector">
-                <option value="1">Seite 1</option>
-            </select>
-            <div id="themeToggle">
-                <label class="switch">
-                    <input type="checkbox" id="themeSwitch" checked>
-                    <span class="slider"></span>
-                </label>
-                <span id="modeLabel" class="theme-label">Darkmode</span>
-            </div>
+        <div id="dateInfo">Stand 21.09.2024 15:36 Uhr</div>
+        <input type="file" id="fileInput" accept=".json" style="display: none;">
+        <input type="text" id="searchInput" placeholder="Produkt suchen...">
+        <button id="searchButton">Suchen</button>
+        <div id="themeToggle">
+            <label class="switch">
+                <input type="checkbox" id="themeSwitch" checked>
+                <span class="slider"></span>
+            </label>
+            <span id="modeLabel">Darkmode</span>
         </div>
+        <select id="pageSelector">
+            <option value="1">Seite 1</option>
+        </select>
         <div id="productCount"></div>
     </div>
 
@@ -374,7 +355,7 @@
 
         function updateProductCount(totalCount) {
             const productCountSpan = document.getElementById('productCount');
-            productCountSpan.textContent = `Insgesamt ${totalCount} Produkt${totalCount !== 1 ? 'e' : ''} in der Datenbank`;
+            productCountSpan.textContent = `${totalCount} Produkt${totalCount !== 1 ? 'e' : ''}`;
         }
 
         function updatePageSelector() {
