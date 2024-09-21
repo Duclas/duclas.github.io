@@ -44,6 +44,7 @@
             width: 100%;
             max-width: 300px;
             margin-top: 5px;
+            align-items: center;
         }
 
         #dateInfo {
@@ -186,16 +187,16 @@
         }
 
         #pageSelector {
-            margin-top: 10px;
+            margin-left: 10px;
             padding: 8px;
             border-radius: 20px;
             border: 1px solid #666;
             background-color: #333;
             color: #f5f5f7;
-            font-size: 16px;
+            font-size: 14px;
             outline: none;
             transition: border-color 0.2s;
-            display: none;
+            flex-shrink: 0;
         }
 
         #pageSelector:focus {
@@ -242,7 +243,7 @@
 <body class="night-mode">
 
     <div id="searchContainer">
-        <div id="dateInfo">Stand 21.09.2024 16:42 Uhr</div>
+        <div id="dateInfo">Stand 21.09.2024 17:00 Uhr</div>
         <input type="file" id="fileInput" accept=".json" style="display: none;">
         <div id="searchBar">
             <input type="text" id="searchInput" placeholder="Produkt suchen...">
@@ -263,10 +264,10 @@
                 </label>
                 <span id="languageLabel">Tiếng Việt</span>
             </div>
+            <select id="pageSelector">
+                <option value="1">Seite 1</option>
+            </select>
         </div>
-        <select id="pageSelector">
-            <option value="1">Seite 1</option>
-        </select>
         <div id="productCount"></div>
     </div>
 
@@ -285,7 +286,7 @@
                 searchButton: "Suchen",
                 modeLabel: "Darkmode",
                 languageLabel: "Tiếng Việt",
-                productCount: (count) => `${count} Produkt${count !== 1 ? 'e' : ''}`,
+                productCount: (current, total) => `Produkt ${current} von ${total}`,
                 noProductsFound: "Keine Produkte gefunden.",
                 pageText: (page) => `Seite ${page}`,
             },
@@ -294,7 +295,7 @@
                 searchButton: "Tìm kiếm",
                 modeLabel: "Chế độ tối",
                 languageLabel: "Tiếng Việt",
-                productCount: (count) => `${count} sản phẩm`,
+                productCount: (current, total) => `Sản phẩm ${current} trong số ${total}`,
                 noProductsFound: "Không tìm thấy sản phẩm nào.",
                 pageText: (page) => `Trang ${page}`,
             }
@@ -321,6 +322,7 @@
                 loadPage(currentPage); // Load the first page
                 updatePageSelector(); // Populate the page selector dropdown
                 checkScrollPosition(); // Enable infinite scrolling
+                updateCurrentProductCount(true); // Update product count immediately
             })
             .catch(error => console.error('Error loading the JSON file:', error));
 
@@ -336,6 +338,7 @@
                 loadPage(currentPage); // Load the first page
                 updatePageSelector(); // Populate the page selector dropdown
                 checkScrollPosition(); // Enable infinite scrolling
+                updateCurrentProductCount(true); // Update product count immediately
             };
             reader.readAsText(file);
         });
@@ -359,6 +362,7 @@
             document.getElementById('results').innerHTML = ''; // Clear previous results
             loadPage(currentPage); // Load the selected page
             window.scrollTo(0, 0); // Scroll to the top of the page
+            updateCurrentProductCount(true); // Update product count immediately
         });
 
         window.addEventListener('scroll', checkScrollPosition);
@@ -382,6 +386,7 @@
                 updatePageSelector(filteredProducts.length); // Populate the page selector dropdown based on filtered results
                 document.getElementById('pageSelector').style.display = 'block'; // Show page selector if more than 50 results
                 checkScrollPosition(); // Enable infinite scrolling
+                updateCurrentProductCount(true); // Update product count immediately
             } else {
                 document.getElementById('results').innerHTML = `<p>${translations[currentLanguage].noProductsFound}</p>`;
                 document.getElementById('pageSelector').style.display = 'none'; // Hide page selector if no results
@@ -401,6 +406,7 @@
             const pageProducts = filteredProducts.slice(startIndex, startIndex + batchSize);
             displayResults(pageProducts);
             currentIndex = startIndex + batchSize;
+            updateCurrentProductCount(true); // Update product count immediately
         }
 
         function loadMoreProducts() {
@@ -412,7 +418,7 @@
 
         function displayResults(productsToDisplay) {
             const resultsDiv = document.getElementById('results');
-            productsToDisplay.forEach(product => {
+            productsToDisplay.forEach((product, index) => {
                 const productDiv = document.createElement('div');
                 productDiv.classList.add('product');
                 productDiv.innerHTML = `
@@ -421,11 +427,35 @@
                 `;
                 resultsDiv.appendChild(productDiv);
             });
+
+            updateCurrentProductCount(true); // Update product count immediately
         }
 
         function updateProductCount(totalCount) {
             const productCountSpan = document.getElementById('productCount');
-            productCountSpan.textContent = translations[currentLanguage].productCount(totalCount);
+            productCountSpan.dataset.totalCount = totalCount;
+        }
+
+        function updateCurrentProductCount(forceUpdate = false) {
+            const products = document.querySelectorAll('.product');
+            const productCountSpan = document.getElementById('productCount');
+
+            if (forceUpdate && products.length > 0) {
+                // Force update to show the first product if it's the initial load or page switch
+                const currentProductIndex = currentIndex - products.length + 1;
+                const totalProducts = productCountSpan.dataset.totalCount;
+                productCountSpan.textContent = translations[currentLanguage].productCount(currentProductIndex, totalProducts);
+                return;
+            }
+
+            products.forEach((product, index) => {
+                const bounding = product.getBoundingClientRect();
+                if (bounding.top >= 0 && bounding.top <= window.innerHeight / 2) {
+                    const currentProductIndex = currentIndex - products.length + index + 1;
+                    const totalProducts = productCountSpan.dataset.totalCount;
+                    productCountSpan.textContent = translations[currentLanguage].productCount(currentProductIndex, totalProducts);
+                }
+            });
         }
 
         function updatePageSelector(totalProductsCount = products.length) {
@@ -451,6 +481,8 @@
         }
 
         function checkScrollPosition() {
+            updateCurrentProductCount();
+
             if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
                 loadMoreProducts();
             }
