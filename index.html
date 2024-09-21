@@ -111,8 +111,9 @@
 
         .product-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(5, 1fr); /* 5 Spalten für das 5x5 Raster */
+            gap: 2px; /* Minimale Lücke zwischen den Kacheln */
+            max-width: 100%;
         }
 
         .product {
@@ -165,7 +166,7 @@
         .product-tile {
             position: relative;
             overflow: hidden;
-            border-radius: 8px;
+            border-radius: 2px; /* Kleinere Kanten */
             cursor: pointer;
             width: 100%;
             padding-top: 100%; /* Für quadratische Kacheln */
@@ -302,7 +303,7 @@
 <body class="night-mode">
 
     <div id="searchContainer">
-        <div id="dateInfo">Stand 21.09.2024 17:44 Uhr</div>
+        <div id="dateInfo">Stand 21.09.2024 17:55 Uhr</div>
         <input type="file" id="fileInput" accept=".json" style="display: none;">
         <div id="searchBar">
             <input type="text" id="searchInput" placeholder="Produkt suchen...">
@@ -565,7 +566,7 @@
             if (products.length === 0) return;
 
             const shuffledProducts = [...products].sort(() => 0.5 - Math.random());
-            const randomProducts = shuffledProducts.slice(0, 25); // Genau 25 Produkte
+            const randomProducts = shuffledProducts.slice(0, 25); // Genau 25 Produkte für 5x5 Raster
 
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '';
@@ -596,7 +597,12 @@
 
         function exitLuckyMode() {
             isLuckyMode = false;
-            // Keine besonderen Änderungen notwendig, da wir im normalen Modus bleiben
+            document.getElementById('results').innerHTML = '';
+            currentPage = 1;
+            currentIndex = 0;
+            loadPage(currentPage);
+            updatePageSelector();
+            updateProductCount(filteredProducts.length);
         }
 
         function hideDateInfo() {
@@ -617,7 +623,6 @@
 
         // Toggle theme between day and night mode
         document.getElementById('themeSwitch').addEventListener('change', function() {
-            if (isLuckyMode) exitLuckyMode();
             const bodyClassList = document.body.classList;
             const modeLabel = document.getElementById('modeLabel');
             if (this.checked) {
@@ -633,7 +638,6 @@
 
         // Toggle language between Deutsch and Vietnamesisch
         document.getElementById('languageSwitch').addEventListener('change', function() {
-            if (isLuckyMode) exitLuckyMode();
             currentLanguage = this.checked ? 'vi' : 'de';
             updateTranslations();
         });
