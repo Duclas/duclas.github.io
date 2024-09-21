@@ -249,7 +249,7 @@
 <body class="night-mode">
 
     <div id="searchContainer">
-        <div id="dateInfo">Stand 21.09.2024 17:08 Uhr</div>
+        <div id="dateInfo">Stand 21.09.2024 17:26 Uhr</div>
         <input type="file" id="fileInput" accept=".json" style="display: none;">
         <div id="searchBar">
             <input type="text" id="searchInput" placeholder="Produkt suchen...">
@@ -293,6 +293,7 @@
                 modeLabel: "Darkmode",
                 languageLabel: "Tiếng Việt",
                 productCount: (current, total) => `Produkt ${current} von ${total}`,
+                productCountTotal: (total) => `${total} Produkt${total !== 1 ? 'e' : ''}`,
                 noProductsFound: "Keine Produkte gefunden.",
                 pageText: (page) => `Seite ${page}`,
             },
@@ -302,6 +303,7 @@
                 modeLabel: "Chế độ tối",
                 languageLabel: "Tiếng Việt",
                 productCount: (current, total) => `Sản phẩm ${current} trong số ${total}`,
+                productCountTotal: (total) => `${total} sản phẩm`,
                 noProductsFound: "Không tìm thấy sản phẩm nào.",
                 pageText: (page) => `Trang ${page}`,
             }
@@ -376,8 +378,8 @@
         function performSearch() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const searchTerms = searchTerm.split(' ').filter(term => term.trim() !== '');
-            filteredProducts = products.filter(product => 
-                searchTerms.every(term => 
+            filteredProducts = products.filter(product =>
+                searchTerms.every(term =>
                     product.description_full.toLowerCase().includes(term)
                 )
             );
@@ -445,16 +447,29 @@
         function updateProductCount(totalCount) {
             const productCountSpan = document.getElementById('productCount');
             productCountSpan.dataset.totalCount = totalCount;
+
+            if (totalCount < batchSize) {
+                // Wenn weniger als 50 Produkte, zeige nur die Gesamtanzahl
+                productCountSpan.textContent = translations[currentLanguage].productCountTotal(totalCount);
+            } else {
+                // Sonst initialisiere die Produktanzeige
+                updateCurrentProductCount(true);
+            }
         }
 
         function updateCurrentProductCount(forceUpdate = false) {
             const products = document.querySelectorAll('.product');
             const productCountSpan = document.getElementById('productCount');
+            const totalProducts = parseInt(productCountSpan.dataset.totalCount);
+
+            if (totalProducts < batchSize) {
+                // Wenn weniger als 50 Produkte, keine Aktualisierung notwendig
+                return;
+            }
 
             if (forceUpdate && products.length > 0) {
-                // Force update to show the first product if it's the initial load or page switch
-                const currentProductIndex = currentIndex - products.length + 1;
-                const totalProducts = productCountSpan.dataset.totalCount;
+                // Zeige das erste Produkt an
+                const currentProductIndex = (currentPage - 1) * batchSize + 1;
                 productCountSpan.textContent = translations[currentLanguage].productCount(currentProductIndex, totalProducts);
                 return;
             }
@@ -462,8 +477,7 @@
             products.forEach((product, index) => {
                 const bounding = product.getBoundingClientRect();
                 if (bounding.top >= 0 && bounding.top <= window.innerHeight / 2) {
-                    const currentProductIndex = currentIndex - products.length + index + 1;
-                    const totalProducts = productCountSpan.dataset.totalCount;
+                    const currentProductIndex = (currentPage - 1) * batchSize + index + 1;
                     productCountSpan.textContent = translations[currentLanguage].productCount(currentProductIndex, totalProducts);
                 }
             });
