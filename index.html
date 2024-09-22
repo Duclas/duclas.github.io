@@ -478,7 +478,7 @@
     <!-- Hauptbereich -->
     <main>
         <div id="product-container" class="product-list"></div>
-        <div id="loading-message">Weitere Produkte werden geladen...</div>
+        <div id="loading-message">...</div>
     </main>
 
     <!-- Favoritenliste (Modal) -->
@@ -862,7 +862,7 @@
             // Funktion zur Aktualisierung des Produkt-Indikators
             function updateProductIndicator() {
                 const productIndicator = document.getElementById('product-indicator');
-                productIndicator.textContent = `Produkt 0 von ${filteredProducts.length}`;
+                productIndicator.textContent = `0 von ${filteredProducts.length} Artikel`;
 
                 const options = {
                     root: null, // viewport
@@ -878,7 +878,7 @@
                             const index = parseInt(entry.target.getAttribute('data-index'));
                             if (index !== currentProductIndex) {
                                 currentProductIndex = index;
-                                productIndicator.textContent = `Produkt ${currentProductIndex + 1} von ${filteredProducts.length}`;
+                                productIndicator.textContent = `${currentProductIndex + 1} von ${filteredProducts.length} Artikel`;
                             }
                         }
                     });
