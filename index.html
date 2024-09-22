@@ -588,6 +588,7 @@
                     populatePageSelect();
                     displayProducts();
                     updateProductIndicator(); // Initiale Anzeige aktualisieren
+                    checkForSearchCode(); // Prüfen, ob ein Favoriten-Code im URL vorhanden ist
                 });
 
             // Suchfunktion
@@ -599,10 +600,11 @@
                 // Prüfen, ob der Suchbegriff ein Favoriten-Code (ASIN-Kette) ist
                 if (/^[A-Za-z0-9]{10,}$/.test(searchTerm)) { 
                     const asins = splitAsinString(searchTerm);
-                    filteredProducts = products.filter(product => {
+                    favorites = products.filter(product => {
                         const asin = extractASIN(product.link);
                         return asins.includes(asin);
                     });
+                    filteredProducts = favorites;
                 } else {
                     // Normale Suche durchführen
                     const searchWords = searchTerm.toLowerCase().split(/\s+/);
@@ -684,6 +686,7 @@
                         const asin = extractASIN(product.link);
                         return asins.includes(asin);
                     });
+                    filteredProducts = favorites;
                     displayFavorites();
                     // Visuelles Feedback
                     loadFavoritesCodeButton.classList.add('button-feedback');
@@ -967,6 +970,28 @@
                         // Aktualisieren Sie den Indikator, falls benötigt
                     }
                 };
+            }
+
+            // Funktion zur Überprüfung des Favoriten-Codes im URL
+            function checkForSearchCode() {
+                const path = window.location.pathname;
+                const pathParts = path.split('/').filter(part => part.length > 0);
+
+                if (pathParts.length === 2 && pathParts[0].toLowerCase() === 'search') {
+                    const favoritCode = pathParts[1];
+                    if (/^[A-Za-z0-9]{10,}$/.test(favoritCode)) {
+                        const asins = splitAsinString(favoritCode);
+                        favorites = products.filter(product => {
+                            const asin = extractASIN(product.link);
+                            return asins.includes(asin);
+                        });
+                        filteredProducts = favorites;
+                        totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+                        populatePageSelect();
+                        displayProducts();
+                        updateProductIndicator();
+                    }
+                }
             }
         });
     </script>
