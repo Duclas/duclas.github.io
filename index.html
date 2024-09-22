@@ -1,5 +1,3 @@
-kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favoriten und zufällig button ist derzeit abgeschenitten, bzw. aus dem bild raus. auch unter den favoriten ist kopieren und laden aus dem bild raus. 
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -8,7 +6,7 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Inline CSS -->
     <style>
-        /* Allgemeine Gestaltung nach Apple-Designprinzipien */
+        /* Allgemeine Gestaltung nach coolen Designprinzipien */
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
@@ -28,7 +26,8 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
             top: 0;
             width: 100%;
             background-color: #1C1C1E;
-            padding: 10px 20px;
+            padding: 10px 30px;
+            box-sizing: border-box;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             z-index: 1000;
         }
@@ -37,11 +36,10 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
             background-color: #F9F9F9;
         }
 
-        header .header-top, header .header-bottom {
+        header .header-top {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
         }
 
         .header-top {
@@ -53,35 +51,21 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
             border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         }
 
-        /* Anpassungen für die Verschiebung des "Dark"-Schalters */
-        .header-top > div {
-            display: flex;
-            align-items: center;
+        header .header-bottom {
+            padding: 0;
+            width: 100%;
+            box-sizing: border-box;
+            align-items: center; /* Zentriert die Elemente horizontal */
         }
 
-        .header-top #static-text {
-            flex: 1;
-        }
-
-        .language-toggle {
-            margin-right: 20px;
-        }
-
-        .theme-toggle {
-            /* Entfernen des margin-right, um den Schalter nach links zu verschieben */
-            margin-right: 0;
-        }
-
-        .search-and-buttons {
-            display: flex;
-            align-items: center;
-            flex: 1;
-        }
-
+        /* Aktualisierte Styling für die Suchleiste */
         .search-bar {
             display: flex;
-            flex: 1;
-            max-width: none; /* Entfernt die maximale Breite */
+            align-items: center;
+            width: 100%; /* Ermöglicht, dass die Suchleiste bis zu dieser maximalen Breite wächst */
+            max-width: none;
+            margin-bottom: 10px;
+            box-sizing: border-box;
         }
 
         .search-bar input {
@@ -91,9 +75,12 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
             border: none;
             border-radius: 8px 0 0 8px;
             outline: none;
+            box-sizing: border-box; /* Sorgt dafür, dass Padding in der Breite enthalten ist */
         }
 
         .search-bar button {
+            flex: none;
+            width: 100px;
             padding: 8px 16px;
             font-size: 16px;
             border: none;
@@ -102,20 +89,38 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
             border-radius: 0 8px 8px 0;
             cursor: pointer;
             outline: none;
+            box-sizing: border-box; /* Sorgt dafür, dass Padding in der Breite enthalten ist */
         }
 
         .search-bar button:hover {
             background-color: #005BBB;
         }
 
+        /* Optional: Anpassung für kleinere Bildschirme */
+        @media (max-width: 480px) {
+            .search-bar {
+                width: 100%;
+                max-width: none; /* Suchleiste nimmt die volle Breite auf kleinen Bildschirmen ein */
+            }
+
+            .search-bar button {
+                padding: 8px 12px; /* Kleinere Padding-Größe für den Button */
+                font-size: 14px; /* Kleinere Schriftgröße für den Button */
+                width: 100px;
+              
+            }
+        }
+
         .header-buttons {
             display: flex;
+            justify-content: center;
             align-items: center;
-            margin-left: 10px;
+            margin-top: 10px;
+            flex-wrap: nowrap; /* Verhindert Umbruch der Buttons */
         }
 
         .header-buttons button {
-            margin-left: 10px;
+            margin: 5px;
             padding: 8px 16px;
             font-size: 16px;
             border: none;
@@ -131,14 +136,19 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
         }
 
         .page-selection {
+            margin-top: 10px;
             display: flex;
             align-items: center;
-            margin-left: 20px;
-            margin-top: 10px;
         }
 
         .page-selection label {
             margin-right: 5px;
+            font-weight: 600;
+        }
+
+        /* Styling für das Produkt-Indikator-Span */
+        #product-indicator {
+            margin-left: 15px;
             font-weight: 600;
         }
 
@@ -270,9 +280,16 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
             font-weight: bold;
             cursor: pointer;
         }
+      
 
         .close:hover {
             color: #CCCCCC;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .favorites-code {
@@ -297,7 +314,7 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
             padding: 8px 12px;
             font-size: 16px;
             border: none;
-            border-radius: 8px 0 0 8px;
+            border-radius: 8px 8px 8px 8px;
             outline: none;
         }
 
@@ -312,13 +329,13 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
         #copy-favorites-code {
             background-color: #007AFF;
             color: #FFFFFF;
-            border-radius: 0;
+            border-radius: 8px 8px 8px 8px;
         }
 
         #load-favorites-code {
             background-color: #34C759; /* Grün für den "Laden"-Button */
             color: #FFFFFF;
-            border-radius: 0 8px 8px 0;
+            border-radius: 8px 8px 8px 8px;
         }
 
         /* Feedback-Effekt für Buttons */
@@ -333,12 +350,12 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
         }
 
         /* Umschalter */
-        .theme-toggle, .language-toggle {
+        .theme-toggle {
             display: flex;
             align-items: center;
         }
 
-        .theme-toggle label, .language-toggle label {
+        .theme-toggle label {
             margin-right: 5px;
             font-weight: 600;
         }
@@ -349,7 +366,7 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
             display: inline-block;
             width: 50px;
             height: 28px;
-            margin-left: 5px; /* Verschiebt den Schalter etwas nach links */
+            margin-left: 5px;
         }
 
         .switch input {
@@ -396,23 +413,36 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .header-bottom {
-                flex-direction: column;
-                align-items: flex-start;
+            .modal-content {
+                width: 90%;
             }
 
-            .search-and-buttons {
-                width: 100%;
+            .favorites-code {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .favorites-code label {
                 margin-bottom: 10px;
             }
 
-            .header-buttons {
-                margin-left: 0;
-                margin-top: 10px;
+            .favorites-code-input-group {
+                flex-direction: column;
             }
 
+            .favorites-code-input-group input,
+            .favorites-code-input-group button {
+                border-radius: 8px;
+                margin-bottom: 10px;
+                width: 100%;
+            }
+
+            /* Entfernt die Anweisung, die Buttons untereinander anordnet */
+            /* .header-buttons {
+                flex-direction: column;
+            } */
+
             .page-selection {
-                margin-left: 0;
                 margin-top: 10px;
             }
 
@@ -426,35 +456,21 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
         <div class="header-top">
             <!-- Statischer Text anstelle von Datum und Uhrzeit -->
             <div id="static-text">Stand 21.09.24</div>
-            <div class="language-toggle">
-                <label for="language-select">Sprache:</label>
-                <select id="language-select">
-                    <option value="de">Deutsch</option>
-                    <option value="vi">Vietnamesisch</option>
-                </select>
-            </div>
-            <div class="theme-toggle">
-                <label for="theme-switch">Dark</label>
-                <label class="switch">
-                    <input type="checkbox" id="theme-switch" checked>
-                    <span class="slider"></span>
-                </label>
-            </div>
         </div>
         <div class="header-bottom">
-            <div class="search-and-buttons">
-                <div class="search-bar">
-                    <input type="text" id="search-input" placeholder="Produkt suchen...">
-                    <button id="search-button">Suchen</button>
-                </div>
-                <div class="header-buttons">
-                    <button id="favorites-button">Favoriten</button>
-                    <button id="random-button">Zufällig</button>
-                </div>
+            <div class="search-bar">
+                <input type="text" id="search-input" placeholder="Produkt suchen...">
+                <button id="search-button">Suchen</button>
+            </div>
+            <div class="header-buttons">
+                <button id="favorites-button">Favoriten</button>
+                <button id="random-button">Zufällig</button>
             </div>
             <div class="page-selection">
                 <label for="page-select">Seite:</label>
                 <select id="page-select"></select>
+                <!-- Neues Element für die Produktanzeige -->
+                <span id="product-indicator" style="margin-left: 15px; font-weight: 600;">Produkt 0 von 0</span>
             </div>
         </div>
     </header>
@@ -469,7 +485,16 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
     <div id="favorites-modal" class="modal">
         <div class="modal-content">
             <span id="close-favorites" class="close">&times;</span>
-            <h2>Favoriten</h2>
+            <div class="modal-header">
+                <h2>Favoriten</h2>
+                <div class="theme-toggle">
+                    <label for="theme-switch">Dark</label>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-switch" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
             <div id="favorites-list"></div>
             <div class="favorites-code">
                 <label for="favorites-code-input">Favoriten-Code:</label>
@@ -491,7 +516,6 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
             let totalPages = 0;
             let favorites = [];
             let isRandomMode = false;
-            let language = 'de';
             let filteredProducts = [];
 
             const productContainer = document.getElementById('product-container');
@@ -507,10 +531,11 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
             const favoritesCodeInput = document.getElementById('favorites-code-input');
             const loadFavoritesCodeButton = document.getElementById('load-favorites-code');
             const copyFavoritesCodeButton = document.getElementById('copy-favorites-code');
-            const themeSwitch = document.getElementById('theme-switch');
-            const languageSelect = document.getElementById('language-select');
             const mainElement = document.querySelector('main');
             const headerElement = document.querySelector('header');
+
+            // Theme-Switch innerhalb des Modals
+            const themeSwitch = document.getElementById('theme-switch');
 
             // Funktion, um das padding-top des Hauptinhalts anzupassen
             function adjustMainPadding() {
@@ -521,29 +546,8 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
             window.addEventListener('load', adjustMainPadding);
             window.addEventListener('resize', adjustMainPadding);
 
-            // Theme wechseln
-            themeSwitch.addEventListener('change', () => {
-                if (themeSwitch.checked) {
-                    document.body.classList.remove('light-mode');
-                    document.querySelector('header').classList.remove('light-mode');
-                    document.querySelector('.header-top').classList.remove('light-mode');
-                    document.querySelector('.modal-content').classList.remove('light-mode');
-                } else {
-                    document.body.classList.add('light-mode');
-                    document.querySelector('header').classList.add('light-mode');
-                    document.querySelector('.header-top').classList.add('light-mode');
-                    document.querySelector('.modal-content').classList.add('light-mode');
-                }
-            });
-
-            // Sprache wechseln
-            languageSelect.addEventListener('change', () => {
-                language = languageSelect.value;
-                // Weitere Sprachwechsel-Funktionen können hier hinzugefügt werden
-            });
-
             // Produkte laden
-            fetch('https://raw.githubusercontent.com/Duclas/duclas.github.io/refs/heads/main/AmazingWineExplorerDatabase.json')
+            fetch('https://raw.githubusercontent.com/Duclas/duclas.github.io/main/AmazingWineExplorerDatabase.json')
                 .then(response => response.json())
                 .then(data => {
                     products = data;
@@ -551,6 +555,7 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
                     totalPages = Math.ceil(filteredProducts.length / productsPerPage);
                     populatePageSelect();
                     displayProducts();
+                    updateProductIndicator(); // Initiale Anzeige aktualisieren
                 });
 
             // Suchfunktion
@@ -559,12 +564,12 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
                 currentPage = 1;
                 const searchTerm = searchInput.value.trim();
 
-                 // Prüfen, ob der Suchbegriff ein Favoriten-Code (ASIN-Kette) ist
+                // Prüfen, ob der Suchbegriff ein Favoriten-Code (ASIN-Kette) ist
                 if (/^[A-Za-z0-9]{10,}$/.test(searchTerm)) { 
                     const asins = splitAsinString(searchTerm);
                     filteredProducts = products.filter(product => {
-                          const asin = extractASIN(product.link);
-                          return asins.includes(asin);
+                        const asin = extractASIN(product.link);
+                        return asins.includes(asin);
                     });
                 } else {
                     // Normale Suche durchführen
@@ -578,6 +583,7 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
                 totalPages = Math.ceil(filteredProducts.length / productsPerPage);
                 populatePageSelect();
                 displayProducts();
+                updateProductIndicator(); // Aktualisiere den Indikator nach der Suche
             });
 
             // Enter-Taste in der Suchleiste
@@ -591,18 +597,27 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
             randomButton.addEventListener('click', () => {
                 isRandomMode = true;
                 displayRandomProducts();
+                updateProductIndicator(); // Aktualisiere den Indikator nach dem Zufallsmodus
             });
 
             // Seite wechseln
             pageSelect.addEventListener('change', () => {
                 currentPage = parseInt(pageSelect.value);
                 displayProducts();
+                updateProductIndicator(); // Aktualisiere den Indikator nach dem Seitenwechsel
             });
 
             // Favoriten anzeigen
             favoritesButton.addEventListener('click', () => {
                 favoritesModal.style.display = 'block';
                 displayFavorites();
+
+                // Update des Theme-Switch-Zustands beim Öffnen des Modals
+                if (document.body.classList.contains('light-mode')) {
+                    themeSwitch.checked = false;
+                } else {
+                    themeSwitch.checked = true;
+                }
             });
 
             // Modal schließen
@@ -614,6 +629,19 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
                     favoritesModal.style.display = 'none';
                 }
             };
+
+            // Theme wechseln
+            themeSwitch.addEventListener('change', () => {
+                if (themeSwitch.checked) {
+                    document.body.classList.remove('light-mode');
+                    document.querySelector('header').classList.remove('light-mode');
+                    document.querySelector('.modal-content').classList.remove('light-mode');
+                } else {
+                    document.body.classList.add('light-mode');
+                    document.querySelector('header').classList.add('light-mode');
+                    document.querySelector('.modal-content').classList.add('light-mode');
+                }
+            });
 
             // Favoriten-Code laden
             loadFavoritesCodeButton.addEventListener('click', () => {
@@ -655,14 +683,17 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
                 let end = start + productsPerPage;
                 let pageProducts = filteredProducts.slice(start, end);
 
-                pageProducts.forEach(product => {
-                    const productItem = createProductItem(product);
+                pageProducts.forEach((product, index) => {
+                    const productIndex = start + index;
+                    const productItem = createProductItem(product, productIndex);
                     productContainer.appendChild(productItem);
                 });
 
                 if (currentPage < totalPages) {
                     setupLazyLoading();
                 }
+
+                updateProductIndicator(); // Aktualisiere den Indikator nach dem Anzeigen der Produkte
             }
 
             // Zufällige Produkte anzeigen
@@ -679,16 +710,20 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
                         randomProducts.push(selectedProduct);
                     }
                 }
-                randomProducts.forEach(product => {
-                    const productItem = createProductItem(product);
+                randomProducts.forEach((product, index) => {
+                    const productIndex = index;
+                    const productItem = createProductItem(product, productIndex);
                     productContainer.appendChild(productItem);
                 });
+
+                updateProductIndicator(); // Aktualisiere den Indikator nach dem Anzeigen der Produkte
             }
 
             // Produkt-Element erstellen
-            function createProductItem(product) {
+            function createProductItem(product, index) {
                 const productItem = document.createElement('div');
                 productItem.className = 'product-item';
+                productItem.setAttribute('data-index', index); // Setze das data-index Attribut
 
                 const img = document.createElement('img');
                 img.src = product.data_img_url;
@@ -810,8 +845,9 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
                                 let start = (currentPage - 1) * productsPerPage;
                                 let end = start + productsPerPage;
                                 let pageProducts = filteredProducts.slice(start, end);
-                                pageProducts.forEach(product => {
-                                    const productItem = createProductItem(product);
+                                pageProducts.forEach((product, index) => {
+                                    const productIndex = start + index;
+                                    const productItem = createProductItem(product, productIndex);
                                     productContainer.appendChild(productItem);
                                 });
                                 pageSelect.value = currentPage;
@@ -821,6 +857,51 @@ kannst du den code für mobile, vor allem für iphone, anpassen? gerade der favo
                         }, 1000);
                     }
                 });
+            }
+
+            // Funktion zur Aktualisierung des Produkt-Indikators
+            function updateProductIndicator() {
+                const productIndicator = document.getElementById('product-indicator');
+                productIndicator.textContent = `Produkt 0 von ${filteredProducts.length}`;
+
+                const options = {
+                    root: null, // viewport
+                    rootMargin: '0px',
+                    threshold: 0.5 // 50% des Produkts muss sichtbar sein
+                };
+
+                let currentProductIndex = 0;
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const index = parseInt(entry.target.getAttribute('data-index'));
+                            if (index !== currentProductIndex) {
+                                currentProductIndex = index;
+                                productIndicator.textContent = `Produkt ${currentProductIndex + 1} von ${filteredProducts.length}`;
+                            }
+                        }
+                    });
+                }, options);
+
+                // Beobachten Sie alle aktuell geladenen Produkte
+                const productItems = document.querySelectorAll('.product-item');
+                productItems.forEach((item, index) => {
+                    item.setAttribute('data-index', index);
+                    observer.observe(item);
+                });
+
+                // Aktualisieren Sie den Observer, wenn neue Produkte hinzugefügt werden (z.B. bei Lazy Loading)
+                const originalAppendChild = productContainer.appendChild;
+                productContainer.appendChild = function(child) {
+                    originalAppendChild.call(this, child);
+                    if (child.classList.contains('product-item')) {
+                        const index = child.getAttribute('data-index') || this.children.length - 1;
+                        child.setAttribute('data-index', index);
+                        observer.observe(child);
+                        // Aktualisieren Sie den Indikator, falls benötigt
+                    }
+                };
             }
         });
     </script>
