@@ -592,33 +592,47 @@
                 });
 
             // Suchfunktion
-            searchButton.addEventListener('click', () => {
-                isRandomMode = false;
-                currentPage = 1;
-                const searchTerm = searchInput.value.trim();
+searchButton.addEventListener('click', () => {
+    isRandomMode = false;
+    currentPage = 1;
+    const searchTerm = searchInput.value.trim().toLowerCase();
 
-                // Prüfen, ob der Suchbegriff ein Favoriten-Code (ASIN-Kette) ist
-                if (/^[A-Za-z0-9]{10,}$/.test(searchTerm)) { 
-                    const asins = splitAsinString(searchTerm);
-                    favorites = products.filter(product => {
-                        const asin = extractASIN(product.link);
-                        return asins.includes(asin);
-                    });
-                    filteredProducts = favorites;
-                } else {
-                    // Normale Suche durchführen
-                    const searchWords = searchTerm.toLowerCase().split(/\s+/);
-                    filteredProducts = products.filter(product => {
-                        const description = product.description_full.toLowerCase();
-                        return searchWords.every(word => description.includes(word));
-                    });
-                }
+    let asinFiltered = [];
+    let descriptionFiltered = [];
 
-                totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-                populatePageSelect();
-                displayProducts();
-                updateProductIndicator(); // Aktualisiere den Indikator nach der Suche
-            });
+    // Suche nach ASINs, wenn der Suchbegriff aus einer oder mehreren 10-stelligen ASINs besteht
+    const asinRegex = /[A-Za-z0-9]{10}/g;
+    const asins = searchTerm.match(asinRegex);
+    if (asins) {
+        asinFiltered = products.filter(product => {
+            const asin = extractASIN(product.link);
+            return asins.includes(asin.toLowerCase());
+        });
+    }
+
+    // Suche in den Beschreibungen
+    if (searchTerm.length > 0) {
+        const searchWords = searchTerm.split(/\s+/);
+        descriptionFiltered = products.filter(product => {
+            const description = product.description_full.toLowerCase();
+            return searchWords.every(word => description.includes(word));
+        });
+    }
+
+    // Kombinieren der Ergebnisse und Duplikate entfernen
+    filteredProducts = [...asinFiltered, ...descriptionFiltered];
+    filteredProducts = filteredProducts.filter((item, index, self) =>
+        index === self.findIndex((t) => (
+            t.link === item.link
+        ))
+    );
+
+    totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+    populatePageSelect();
+    displayProducts();
+    updateProductIndicator(); // Aktualisiere den Indikator nach der Suche
+});
+
 
             // Enter-Taste in der Suchleiste
             searchInput.addEventListener('keyup', event => {
