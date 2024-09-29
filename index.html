@@ -358,7 +358,7 @@
             outline: none;
         }
 
-        #copy-favorites-code {
+        #share-favorites-code {
             background-color: #007AFF;
             color: #FFFFFF;
             border-radius: 8px;
@@ -532,7 +532,7 @@
                 <label for="favorites-code-input">Favoriten-Code:</label>
                 <div class="favorites-code-input-group">
                     <input type="text" id="favorites-code-input">
-                    <button id="copy-favorites-code">Kopieren</button>
+                    <button id="share-favorites-code">Teilen</button>
                     <button id="load-favorites-code">Laden</button>
                 </div>
             </div>
@@ -562,7 +562,7 @@
             const favoritesList = document.getElementById('favorites-list');
             const favoritesCodeInput = document.getElementById('favorites-code-input');
             const loadFavoritesCodeButton = document.getElementById('load-favorites-code');
-            const copyFavoritesCodeButton = document.getElementById('copy-favorites-code');
+            const shareFavoritesCodeButton = document.getElementById('share-favorites-code');
             const mainElement = document.querySelector('main');
             const headerElement = document.querySelector('header');
 
@@ -592,47 +592,46 @@
                 });
 
             // Suchfunktion
-searchButton.addEventListener('click', () => {
-    isRandomMode = false;
-    currentPage = 1;
-    const searchTerm = searchInput.value.trim().toLowerCase();
+            searchButton.addEventListener('click', () => {
+                isRandomMode = false;
+                currentPage = 1;
+                const searchTerm = searchInput.value.trim().toLowerCase();
 
-    let asinFiltered = [];
-    let descriptionFiltered = [];
+                let asinFiltered = [];
+                let descriptionFiltered = [];
 
-    // Suche nach ASINs, wenn der Suchbegriff aus einer oder mehreren 10-stelligen ASINs besteht
-    const asinRegex = /[A-Za-z0-9]{10}/g;
-    const asins = searchTerm.match(asinRegex);
-    if (asins) {
-        asinFiltered = products.filter(product => {
-            const asin = extractASIN(product.link);
-            return asins.includes(asin.toLowerCase());
-        });
-    }
+                // Suche nach ASINs, wenn der Suchbegriff aus einer oder mehreren 10-stelligen ASINs besteht
+                const asinRegex = /[A-Za-z0-9]{10}/g;
+                const asins = searchTerm.match(asinRegex);
+                if (asins) {
+                    asinFiltered = products.filter(product => {
+                        const asin = extractASIN(product.link);
+                        return asins.includes(asin.toLowerCase());
+                    });
+                }
 
-    // Suche in den Beschreibungen
-    if (searchTerm.length > 0) {
-        const searchWords = searchTerm.split(/\s+/);
-        descriptionFiltered = products.filter(product => {
-            const description = product.description_full.toLowerCase();
-            return searchWords.every(word => description.includes(word));
-        });
-    }
+                // Suche in den Beschreibungen
+                if (searchTerm.length > 0) {
+                    const searchWords = searchTerm.split(/\s+/);
+                    descriptionFiltered = products.filter(product => {
+                        const description = product.description_full.toLowerCase();
+                        return searchWords.every(word => description.includes(word));
+                    });
+                }
 
-    // Kombinieren der Ergebnisse und Duplikate entfernen
-    filteredProducts = [...asinFiltered, ...descriptionFiltered];
-    filteredProducts = filteredProducts.filter((item, index, self) =>
-        index === self.findIndex((t) => (
-            t.link === item.link
-        ))
-    );
+                // Kombinieren der Ergebnisse und Duplikate entfernen
+                filteredProducts = [...asinFiltered, ...descriptionFiltered];
+                filteredProducts = filteredProducts.filter((item, index, self) =>
+                    index === self.findIndex((t) => (
+                        t.link === item.link
+                    ))
+                );
 
-    totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-    populatePageSelect();
-    displayProducts();
-    updateProductIndicator(); // Aktualisiere den Indikator nach der Suche
-});
-
+                totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+                populatePageSelect();
+                displayProducts();
+                updateProductIndicator(); // Aktualisiere den Indikator nach der Suche
+            });
 
             // Enter-Taste in der Suchleiste
             searchInput.addEventListener('keyup', event => {
@@ -712,17 +711,34 @@ searchButton.addEventListener('click', () => {
                 }
             });
 
-            // Favoriten-Code kopieren
-            copyFavoritesCodeButton.addEventListener('click', () => {
-                navigator.clipboard.writeText(favoritesCodeInput.value).then(() => {
-                    // Visuelles Feedback
-                    copyFavoritesCodeButton.classList.add('button-feedback');
-                    setTimeout(() => {
-                        copyFavoritesCodeButton.classList.remove('button-feedback');
-                    }, 300);
-                }).catch(err => {
-                    // Fehlerhandling (optional)
-                });
+            // Teilen des Favoriten-Codes
+            shareFavoritesCodeButton.addEventListener('click', () => {
+                if (navigator.share) {
+                    navigator.share({
+                        text: favoritesCodeInput.value
+                    }).then(() => {
+                        // Visuelles Feedback
+                        shareFavoritesCodeButton.classList.add('button-feedback');
+                        setTimeout(() => {
+                            shareFavoritesCodeButton.classList.remove('button-feedback');
+                        }, 300);
+                    }).catch(err => {
+                        // Fehlerbehandlung (optional)
+                        console.error('Fehler beim Teilen:', err.message);
+                    });
+                } else {
+                    // Fallback für Browser, die die Web Share API nicht unterstützen
+                    navigator.clipboard.writeText(favoritesCodeInput.value).then(() => {
+                        // Visuelles Feedback
+                        shareFavoritesCodeButton.classList.add('button-feedback');
+                        setTimeout(() => {
+                            shareFavoritesCodeButton.classList.remove('button-feedback');
+                        }, 300);
+                        alert('Ihr Browser unterstützt die Teilen-Funktion nicht. Der Favoriten-Code wurde stattdessen kopiert.');
+                    }).catch(err => {
+                        console.error('Fehler beim Kopieren:', err.message);
+                    });
+                }
             });
 
             // Produkte anzeigen
