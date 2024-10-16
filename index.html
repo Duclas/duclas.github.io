@@ -214,12 +214,6 @@
             font-weight: 500;
             display: block; /* Blockformat */
             word-break: break-word; /* Zeilenumbruch bei langen Wörtern */
-            /* Entfernt:
-            -webkit-line-clamp: 2;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-height: 44px;
-            */
         }
 
         .product-item .product-info h3 a {
@@ -233,7 +227,6 @@
 
         .product-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
             gap: 2px;
         }
 
@@ -252,22 +245,10 @@
         }
 
         .product-grid .product-item img {
-            max-width: 100%;
+            width: 100%;
+            height: auto;
             margin-right: 0;
             border-radius: 2px;
-        }
-
-        .product-grid .product-item .product-info {
-            margin-top: 5px;
-            width: 100%; /* Volle Breite */
-        }
-
-        .product-grid .product-item .product-info h3 {
-            font-size: 14px;
-            max-height: none; /* Entfernt die maximale Höhe */
-            /* Optionale Anpassung, um die Textlänge zu kontrollieren:
-            line-height: 1.2;
-            */
         }
 
         #loading-message {
@@ -469,11 +450,6 @@
                 width: 100%;
             }
 
-            /* Entfernt die Anweisung, die Buttons untereinander anordnet */
-            /* .header-buttons {
-                flex-direction: column;
-            } */
-
             .page-selection {
                 margin-top: 10px;
             }
@@ -487,7 +463,7 @@
     <header>
         <div class="header-top">
             <!-- Statischer Text anstelle von Datum und Uhrzeit -->
-            <div id="static-text">Datenbank vom 17.10.24</div>
+            <div id="static-text">Datenbank vom 03.10.24</div>
         </div>
         <div class="header-bottom">
             <div class="search-bar">
@@ -497,6 +473,8 @@
             <div class="header-buttons">
                 <button id="favorites-button">Favoriten</button>
                 <button id="random-button">Zufällig</button>
+                <button id="increase-size-button">+</button>
+                <button id="decrease-size-button">-</button>
             </div>
             <div class="page-selection">
                 <label for="page-select">Seite:</label>
@@ -549,6 +527,7 @@
             let favorites = [];
             let isRandomMode = false;
             let filteredProducts = [];
+            let columns = 5; // Anzahl der Spalten für das Grid
 
             const productContainer = document.getElementById('product-container');
             const loadingMessage = document.getElementById('loading-message');
@@ -565,6 +544,8 @@
             const shareFavoritesCodeButton = document.getElementById('share-favorites-code');
             const mainElement = document.querySelector('main');
             const headerElement = document.querySelector('header');
+            const increaseSizeButton = document.getElementById('increase-size-button');
+            const decreaseSizeButton = document.getElementById('decrease-size-button');
 
             // Theme-Switch innerhalb des Modals
             const themeSwitch = document.getElementById('theme-switch');
@@ -645,6 +626,22 @@
                 isRandomMode = true;
                 displayRandomProducts();
                 updateProductIndicator(); // Aktualisiere den Indikator nach dem Zufallsmodus
+            });
+
+            // Größe der Bilder erhöhen
+            increaseSizeButton.addEventListener('click', () => {
+                if (columns > 1) {
+                    columns--;
+                    updateGridLayout();
+                }
+            });
+
+            // Größe der Bilder verringern
+            decreaseSizeButton.addEventListener('click', () => {
+                if (columns < 10) {
+                    columns++;
+                    updateGridLayout();
+                }
             });
 
             // Seite wechseln
@@ -779,15 +776,21 @@
                 }
                 randomProducts.forEach((product, index) => {
                     const productIndex = index;
-                    const productItem = createProductItem(product, productIndex);
+                    const productItem = createProductItem(product, productIndex, false);
                     productContainer.appendChild(productItem);
                 });
 
+                updateGridLayout(); // Grid-Layout aktualisieren
                 updateProductIndicator(); // Aktualisiere den Indikator nach dem Anzeigen der Produkte
             }
 
+            // Grid-Layout aktualisieren
+            function updateGridLayout() {
+                productContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            }
+
             // Produkt-Element erstellen
-            function createProductItem(product, index) {
+            function createProductItem(product, index, showDescription = true) {
                 const productItem = document.createElement('div');
                 productItem.className = 'product-item';
                 productItem.setAttribute('data-index', index); // Setze das data-index Attribut
@@ -795,34 +798,42 @@
                 const img = document.createElement('img');
                 img.src = product.data_img_url;
                 img.alt = product.description_full;
+
+                // Event Listener für Einzel- und Doppelklick
                 img.addEventListener('click', () => toggleFavorite(product, img));
+                img.addEventListener('dblclick', () => {
+                    window.open('https://www.amazon.de' + product.link, '_blank');
+                });
 
                 if (favorites.some(fav => fav.link === product.link)) {
                     img.classList.add('favorite');
                 }
 
-                const productInfo = document.createElement('div');
-                productInfo.className = 'product-info';
-
-                const title = document.createElement('h3');
-                const titleLink = document.createElement('a');
-                titleLink.href = 'https://www.amazon.de' + product.link;
-                titleLink.target = '_blank';
-
-                // Begrenzung des Textes auf 80 Zeichen, außer das Produkt ist ein Favorit
-                let displayText = product.description_full;
-                if (!favorites.some(fav => fav.link === product.link)) {
-                    if (product.description_full.length > 80) {
-                        displayText = product.description_full.slice(0, 80) + '...';
-                    }
-                }
-                titleLink.textContent = displayText;
-                title.appendChild(titleLink);
-
-                productInfo.appendChild(title);
-
                 productItem.appendChild(img);
-                productItem.appendChild(productInfo);
+
+                if (showDescription) {
+                    const productInfo = document.createElement('div');
+                    productInfo.className = 'product-info';
+
+                    const title = document.createElement('h3');
+                    const titleLink = document.createElement('a');
+                    titleLink.href = 'https://www.amazon.de' + product.link;
+                    titleLink.target = '_blank';
+
+                    // Begrenzung des Textes auf 80 Zeichen, außer das Produkt ist ein Favorit
+                    let displayText = product.description_full;
+                    if (!favorites.some(fav => fav.link === product.link)) {
+                        if (product.description_full.length > 80) {
+                            displayText = product.description_full.slice(0, 80) + '...';
+                        }
+                    }
+                    titleLink.textContent = displayText;
+                    title.appendChild(titleLink);
+
+                    productInfo.appendChild(title);
+
+                    productItem.appendChild(productInfo);
+                }
 
                 return productItem;
             }
