@@ -61,14 +61,14 @@
             padding: 0;
             width: 100%;
             box-sizing: border-box;
-            align-items: center;
+            align-items: center; /* Zentriert die Elemente horizontal */
         }
 
         /* Aktualisierte Styling für die Suchleiste */
         .search-bar {
             display: flex;
             align-items: center;
-            width: 100%;
+            width: 100%; /* Ermöglicht, dass die Suchleiste bis zu dieser maximalen Breite wächst */
             max-width: none;
             margin-bottom: 10px;
             box-sizing: border-box;
@@ -81,7 +81,7 @@
             border: none;
             border-radius: 8px 0 0 8px;
             outline: none;
-            box-sizing: border-box;
+            box-sizing: border-box; /* Sorgt dafür, dass Padding in der Breite enthalten ist */
         }
 
         .search-bar button {
@@ -95,7 +95,7 @@
             border-radius: 0 8px 8px 0;
             cursor: pointer;
             outline: none;
-            box-sizing: border-box;
+            box-sizing: border-box; /* Sorgt dafür, dass Padding in der Breite enthalten ist */
         }
 
         .search-bar button:hover {
@@ -106,12 +106,12 @@
         @media (max-width: 480px) {
             .search-bar {
                 width: 100%;
-                max-width: none;
+                max-width: none; /* Suchleiste nimmt die volle Breite auf kleinen Bildschirmen ein */
             }
 
             .search-bar button {
-                padding: 8px 12px;
-                font-size: 14px;
+                padding: 8px 12px; /* Kleinere Padding-Größe für den Button */
+                font-size: 14px; /* Kleinere Schriftgröße für den Button */
                 width: 100px;
             }
         }
@@ -121,7 +121,7 @@
             justify-content: center;
             align-items: center;
             margin-top: 10px;
-            flex-wrap: nowrap;
+            flex-wrap: nowrap; /* Verhindert Umbruch der Buttons */
         }
 
         .header-buttons button {
@@ -168,24 +168,24 @@
         /* Anpassung der Produktdarstellung */
         .product-list .product-item {
             display: flex;
-            align-items: flex-start;
-            margin-bottom: 5px;
-            background-color: #2C2C2E;
-            border-radius: 12px;
-            padding: 5px;
+            align-items: flex-start; /* Ändern von center zu flex-start */
+            margin-bottom: 5px; /* Reduzierter Abstand zwischen den Boxen */
+            background-color: #2C2C2E; /* Dunkelgrauer Hintergrund für Dark Mode */
+            border-radius: 12px; /* Abgerundete Ecken */
+            padding: 5px; /* Reduziertes Padding */
             transition: background-color 0.3s, color 0.3s;
         }
 
         /* Hintergrund und Textfarbe für Light Mode */
         body.light-mode .product-list .product-item {
-            background-color: #F0F0F0;
-            color: #000000;
+            background-color: #F0F0F0; /* Hellgrauer Hintergrund für Light Mode */
+            color: #000000; /* Schwarzer Text */
         }
 
         .product-item img {
             max-width: 60px;
-            max-height: 60px;
-            margin-right: 5px;
+            max-height: 60px; /* Feste Höhe für das Bild */
+            margin-right: 5px; /* Reduzierter Abstand zwischen Bild und Text */
             border-radius: 8px;
             object-fit: cover;
             cursor: pointer;
@@ -202,18 +202,24 @@
         }
 
         .product-item .product-info {
-            display: block;
+            display: block; /* Blockformat für den Text */
             flex-grow: 1;
-            width: 100%;
+            width: 100%; /* Volle Breite */
         }
 
         .product-item .product-info h3 {
             font-size: 16px;
-            margin: 5px 0;
+            margin: 5px 0; /* Reduzierter Abstand oben und unten */
             color: inherit;
             font-weight: 500;
-            display: block;
-            word-break: break-word;
+            display: block; /* Blockformat */
+            word-break: break-word; /* Zeilenumbruch bei langen Wörtern */
+            /* Entfernt:
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-height: 44px;
+            */
         }
 
         .product-item .product-info h3 a {
@@ -235,14 +241,14 @@
             flex-direction: column;
             align-items: center;
             margin-bottom: 0;
-            background-color: inherit;
-            padding: 5px;
+            background-color: inherit; /* Vererbt die Hintergrundfarbe */
+            padding: 5px; /* Reduziertes Padding */
         }
 
         /* Hintergrund und Textfarbe für Light Mode im Grid-Layout */
         body.light-mode .product-grid .product-item {
-            background-color: #F0F0F0;
-            color: #000000;
+            background-color: #F0F0F0; /* Hellgrauer Hintergrund für Light Mode */
+            color: #000000; /* Schwarzer Text */
         }
 
         .product-grid .product-item img {
@@ -253,12 +259,15 @@
 
         .product-grid .product-item .product-info {
             margin-top: 5px;
-            width: 100%;
+            width: 100%; /* Volle Breite */
         }
 
         .product-grid .product-item .product-info h3 {
             font-size: 14px;
-            max-height: none;
+            max-height: none; /* Entfernt die maximale Höhe */
+            /* Optionale Anpassung, um die Textlänge zu kontrollieren:
+            line-height: 1.2;
+            */
         }
 
         #loading-message {
@@ -356,7 +365,7 @@
         }
 
         #load-favorites-code {
-            background-color: #34C759;
+            background-color: #34C759; /* Grün für den "Laden"-Button */
             color: #FFFFFF;
             border-radius: 8px;
         }
@@ -460,9 +469,16 @@
                 width: 100%;
             }
 
+            /* Entfernt die Anweisung, die Buttons untereinander anordnet */
+            /* .header-buttons {
+                flex-direction: column;
+            } */
+
             .page-selection {
                 margin-top: 10px;
             }
+
+            /* padding-top wird durch JavaScript gesetzt */
         }
     </style>
 </head>
@@ -481,8 +497,6 @@
             <div class="header-buttons">
                 <button id="favorites-button">Favoriten</button>
                 <button id="random-button">Zufällig</button>
-                <button id="zoom-in-button">+</button>
-                <button id="zoom-out-button">−</button>
             </div>
             <div class="page-selection">
                 <label for="page-select">Seite:</label>
@@ -536,8 +550,6 @@
             let isRandomMode = false;
             let filteredProducts = [];
 
-            let currentImageSize = 60; // Initiale Bildgröße
-
             const productContainer = document.getElementById('product-container');
             const loadingMessage = document.getElementById('loading-message');
             const searchInput = document.getElementById('search-input');
@@ -553,9 +565,6 @@
             const shareFavoritesCodeButton = document.getElementById('share-favorites-code');
             const mainElement = document.querySelector('main');
             const headerElement = document.querySelector('header');
-
-            const zoomInButton = document.getElementById('zoom-in-button');
-            const zoomOutButton = document.getElementById('zoom-out-button');
 
             // Theme-Switch innerhalb des Modals
             const themeSwitch = document.getElementById('theme-switch');
@@ -637,30 +646,6 @@
                 displayRandomProducts();
                 updateProductIndicator(); // Aktualisiere den Indikator nach dem Zufallsmodus
             });
-
-            // Zoom-In und Zoom-Out Funktionen
-            zoomInButton.addEventListener('click', () => {
-                adjustImageSize(1.1);
-            });
-
-            zoomOutButton.addEventListener('click', () => {
-                adjustImageSize(0.9);
-            });
-
-            function adjustImageSize(factor) {
-                currentImageSize *= factor;
-                currentImageSize = Math.max(30, Math.min(currentImageSize, 200));
-
-                // Update der Bildgröße
-                const images = document.querySelectorAll('.product-item img');
-                images.forEach(img => {
-                    img.style.maxWidth = currentImageSize + 'px';
-                    img.style.maxHeight = currentImageSize + 'px';
-                });
-
-                // Optional: Anpassung der Produktboxen
-                // Hier können Sie die Größe der Produktboxen anpassen, falls nötig
-            }
 
             // Seite wechseln
             pageSelect.addEventListener('change', () => {
