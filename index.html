@@ -166,26 +166,36 @@
         }
 
         /* Anpassung der Produktdarstellung */
+        .product-list {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
         .product-list .product-item {
             display: flex;
-            align-items: flex-start; /* Ändern von center zu flex-start */
-            margin-bottom: 5px; /* Reduzierter Abstand zwischen den Boxen */
-            background-color: #2C2C2E; /* Dunkelgrauer Hintergrund für Dark Mode */
-            border-radius: 12px; /* Abgerundete Ecken */
-            padding: 5px; /* Reduziertes Padding */
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 5px;
+            background-color: #2C2C2E;
+            border-radius: 12px;
+            padding: 5px;
             transition: background-color 0.3s, color 0.3s;
+            /* Standardbreite für 5 Artikel pro Reihe */
+            width: calc(100% / 5);
+            box-sizing: border-box;
         }
 
         /* Hintergrund und Textfarbe für Light Mode */
         body.light-mode .product-list .product-item {
-            background-color: #F0F0F0; /* Hellgrauer Hintergrund für Light Mode */
-            color: #000000; /* Schwarzer Text */
+            background-color: #F0F0F0;
+            color: #000000;
         }
 
         .product-item img {
-            max-width: 60px;
-            max-height: 60px; /* Feste Höhe für das Bild */
-            margin-right: 5px; /* Reduzierter Abstand zwischen Bild und Text */
+            width: 100%;
+            height: auto;
+            max-height: 200px;
+            margin-bottom: 5px;
             border-radius: 8px;
             object-fit: cover;
             cursor: pointer;
@@ -202,9 +212,9 @@
         }
 
         .product-item .product-info {
-            display: block; /* Blockformat für den Text */
-            flex-grow: 1;
+            display: block;
             width: 100%; /* Volle Breite */
+            text-align: center;
         }
 
         .product-item .product-info h3 {
@@ -227,6 +237,7 @@
 
         .product-grid {
             display: grid;
+            grid-template-columns: repeat(5, 1fr);
             gap: 2px;
         }
 
@@ -245,10 +256,20 @@
         }
 
         .product-grid .product-item img {
-            width: 100%;
-            height: auto;
+            max-width: 100%;
             margin-right: 0;
             border-radius: 2px;
+        }
+
+        .product-grid .product-item .product-info {
+            margin-top: 5px;
+            width: 100%; /* Volle Breite */
+        }
+
+        .product-grid .product-item .product-info h3 {
+            font-size: 14px;
+            max-height: none; /* Entfernt die maximale Höhe */
+            text-align: center;
         }
 
         #loading-message {
@@ -450,6 +471,11 @@
                 width: 100%;
             }
 
+            /* Entfernt die Anweisung, die Buttons untereinander anordnet */
+            /* .header-buttons {
+                flex-direction: column;
+            } */
+
             .page-selection {
                 margin-top: 10px;
             }
@@ -463,7 +489,7 @@
     <header>
         <div class="header-top">
             <!-- Statischer Text anstelle von Datum und Uhrzeit -->
-            <div id="static-text">Datenbank vom 03.10.24</div>
+            <div id="static-text">Datenbank vom 17.10.24</div>
         </div>
         <div class="header-bottom">
             <div class="search-bar">
@@ -527,7 +553,7 @@
             let favorites = [];
             let isRandomMode = false;
             let filteredProducts = [];
-            let columns = 5; // Anzahl der Spalten für das Grid
+            let itemsPerRow = 5; // Standardanzahl an Artikeln pro Reihe
 
             const productContainer = document.getElementById('product-container');
             const loadingMessage = document.getElementById('loading-message');
@@ -628,20 +654,18 @@
                 updateProductIndicator(); // Aktualisiere den Indikator nach dem Zufallsmodus
             });
 
-            // Größe der Bilder erhöhen
+            // Größe erhöhen
             increaseSizeButton.addEventListener('click', () => {
-                if (columns > 1) {
-                    columns--;
-                    updateGridLayout();
+                if (itemsPerRow > 1) {
+                    itemsPerRow--;
+                    applySizeSettings();
                 }
             });
 
-            // Größe der Bilder verringern
+            // Größe verringern
             decreaseSizeButton.addEventListener('click', () => {
-                if (columns < 10) {
-                    columns++;
-                    updateGridLayout();
-                }
+                itemsPerRow++;
+                applySizeSettings();
             });
 
             // Seite wechseln
@@ -753,6 +777,8 @@
                     productContainer.appendChild(productItem);
                 });
 
+                applySizeSettings();
+
                 if (currentPage < totalPages) {
                     setupLazyLoading();
                 }
@@ -764,6 +790,7 @@
             function displayRandomProducts() {
                 productContainer.innerHTML = '';
                 productContainer.className = 'product-grid';
+                productContainer.style.gridTemplateColumns = `repeat(${itemsPerRow}, 1fr)`;
                 let randomProducts = [];
                 let productSubsetSize = Math.min(3000, products.length);
 
@@ -776,21 +803,16 @@
                 }
                 randomProducts.forEach((product, index) => {
                     const productIndex = index;
-                    const productItem = createProductItem(product, productIndex, false);
+                    const productItem = createProductItem(product, productIndex);
                     productContainer.appendChild(productItem);
                 });
 
-                updateGridLayout(); // Grid-Layout aktualisieren
+                applySizeSettings();
                 updateProductIndicator(); // Aktualisiere den Indikator nach dem Anzeigen der Produkte
             }
 
-            // Grid-Layout aktualisieren
-            function updateGridLayout() {
-                productContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
-            }
-
             // Produkt-Element erstellen
-            function createProductItem(product, index, showDescription = true) {
+            function createProductItem(product, index) {
                 const productItem = document.createElement('div');
                 productItem.className = 'product-item';
                 productItem.setAttribute('data-index', index); // Setze das data-index Attribut
@@ -799,8 +821,8 @@
                 img.src = product.data_img_url;
                 img.alt = product.description_full;
 
-                // Event Listener für Einzel- und Doppelklick
                 img.addEventListener('click', () => toggleFavorite(product, img));
+
                 img.addEventListener('dblclick', () => {
                     window.open('https://www.amazon.de' + product.link, '_blank');
                 });
@@ -809,31 +831,28 @@
                     img.classList.add('favorite');
                 }
 
-                productItem.appendChild(img);
+                const productInfo = document.createElement('div');
+                productInfo.className = 'product-info';
 
-                if (showDescription) {
-                    const productInfo = document.createElement('div');
-                    productInfo.className = 'product-info';
+                const title = document.createElement('h3');
+                const titleLink = document.createElement('a');
+                titleLink.href = 'https://www.amazon.de' + product.link;
+                titleLink.target = '_blank';
 
-                    const title = document.createElement('h3');
-                    const titleLink = document.createElement('a');
-                    titleLink.href = 'https://www.amazon.de' + product.link;
-                    titleLink.target = '_blank';
-
-                    // Begrenzung des Textes auf 80 Zeichen, außer das Produkt ist ein Favorit
-                    let displayText = product.description_full;
-                    if (!favorites.some(fav => fav.link === product.link)) {
-                        if (product.description_full.length > 80) {
-                            displayText = product.description_full.slice(0, 80) + '...';
-                        }
+                // Begrenzung des Textes auf 80 Zeichen, außer das Produkt ist ein Favorit
+                let displayText = product.description_full;
+                if (!favorites.some(fav => fav.link === product.link)) {
+                    if (product.description_full.length > 80) {
+                        displayText = product.description_full.slice(0, 80) + '...';
                     }
-                    titleLink.textContent = displayText;
-                    title.appendChild(titleLink);
-
-                    productInfo.appendChild(title);
-
-                    productItem.appendChild(productInfo);
                 }
+                titleLink.textContent = displayText;
+                title.appendChild(titleLink);
+
+                productInfo.appendChild(title);
+
+                productItem.appendChild(img);
+                productItem.appendChild(productInfo);
 
                 return productItem;
             }
@@ -960,6 +979,7 @@
                                     productContainer.appendChild(productItem);
                                 });
                                 pageSelect.value = currentPage;
+                                applySizeSettings();
                             }
                             loading = false;
                             loadingMessage.style.display = 'none';
@@ -1001,16 +1021,29 @@
                 });
 
                 // Aktualisieren Sie den Observer, wenn neue Produkte hinzugefügt werden (z.B. bei Lazy Loading)
-                const originalAppendChild = productContainer.appendChild;
+                const originalAppendChild = productContainer.appendChild.bind(productContainer);
                 productContainer.appendChild = function(child) {
-                    originalAppendChild.call(this, child);
+                    originalAppendChild(child);
                     if (child.classList.contains('product-item')) {
                         const index = child.getAttribute('data-index') || this.children.length - 1;
                         child.setAttribute('data-index', index);
                         observer.observe(child);
-                        // Aktualisieren Sie den Indikator, falls benötigt
                     }
                 };
+            }
+
+            // Funktion zur Anpassung der Größen
+            function applySizeSettings() {
+                // Für Grid-Modus
+                if (productContainer.classList.contains('product-grid')) {
+                    productContainer.style.gridTemplateColumns = `repeat(${itemsPerRow}, 1fr)`;
+                } else {
+                    // Für Listenmodus
+                    const productItems = document.querySelectorAll('.product-item');
+                    productItems.forEach(item => {
+                        item.style.width = `${100 / itemsPerRow}%`;
+                    });
+                }
             }
 
             // Funktion zur Überprüfung des Favoriten-Codes im URL
