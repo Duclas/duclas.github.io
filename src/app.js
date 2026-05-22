@@ -3,7 +3,7 @@ import {
   createCsv,
   groupTextItemsIntoLines,
   rowsForWorkbook
-} from "./parser.js";
+} from "./parser.js?v=day-balance-20260522";
 import { createXlsxBlob } from "./xlsx.js";
 
 import * as pdfjsLib from "../vendor/pdf.min.mjs";

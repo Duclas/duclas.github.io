@@ -145,6 +145,50 @@ test("builds statement rows with balance column", () => {
   assert.equal(result.transactions[1].kontostand, "3.123,45");
 });
 
+test("calculates daily balances backwards from the final balance", () => {
+  const lines = groupTextItemsIntoLines([
+    item("Datum", 20, 340),
+    item("Erläuterung", 110, 340),
+    item("Betrag EUR", 430, 340),
+    item("30.01.2026", 20, 320),
+    item("Ausgang", 110, 320),
+    item("-100,00", 450, 320),
+    item("29.01.2026", 20, 300),
+    item("Aeltere Buchung", 110, 300),
+    item("-25,00", 450, 300),
+    item("Neuer Kontostand 31.01.2026", 260, 80),
+    item("1.000,00", 450, 80)
+  ]);
+
+  const result = buildRowsForStatement("auszug.pdf", [{ pageNumber: 1, lines }]);
+  assert.equal(result.transactions[0].kontostand, "1.000,00");
+  assert.equal(result.transactions[1].kontostand, "1.100,00");
+});
+
+test("uses the same balance for all transactions on one booking day", () => {
+  const lines = groupTextItemsIntoLines([
+    item("Datum", 20, 360),
+    item("Erläuterung", 110, 360),
+    item("Betrag EUR", 430, 360),
+    item("29.01.2026", 20, 340),
+    item("Aeltere Buchung", 110, 340),
+    item("-25,00", 450, 340),
+    item("30.01.2026", 20, 320),
+    item("Ausgang", 110, 320),
+    item("-100,00", 450, 320),
+    item("30.01.2026", 20, 300),
+    item("Eingang", 110, 300),
+    item("20,00", 450, 300),
+    item("Neuer Kontostand 31.01.2026", 260, 80),
+    item("1.000,00", 450, 80)
+  ]);
+
+  const result = buildRowsForStatement("auszug.pdf", [{ pageNumber: 1, lines }]);
+  assert.equal(result.transactions[0].kontostand, "1.080,00");
+  assert.equal(result.transactions[1].kontostand, "1.000,00");
+  assert.equal(result.transactions[2].kontostand, "1.000,00");
+});
+
 test("creates semicolon csv with utf friendly header", () => {
   const csv = createCsv([
     {

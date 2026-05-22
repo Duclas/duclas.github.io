@@ -51,6 +51,25 @@ function formatEuroCents(value) {
   return `${negative ? "-" : ""}${euros},${cents}`;
 }
 
+function parseDateKey(value) {
+  const match = cleanText(value).match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})?/);
+  if (!match) {
+    return null;
+  }
+
+  const day = Number.parseInt(match[1], 10);
+  const month = Number.parseInt(match[2], 10);
+  const rawYear = match[3] ?? "0";
+  const parsedYear = Number.parseInt(rawYear, 10);
+  const year = rawYear.length === 2 ? 2000 + parsedYear : parsedYear;
+
+  if (!Number.isFinite(day) || !Number.isFinite(month) || !Number.isFinite(year)) {
+    return null;
+  }
+
+  return year * 10000 + month * 100 + day;
+}
+
 function itemX(item) {
   return Number(item?.transform?.[4] ?? item?.x ?? 0);
 }
@@ -285,18 +304,45 @@ export function buildRowsForStatement(fileName, pages) {
   const balance = extractBalanceFromLines(lines);
   let runningBalance = parseEuroCents(balance.value);
   const transactionsWithBalances = [...transactions];
+  const groups = new Map();
 
-  for (let index = transactionsWithBalances.length - 1; index >= 0; index -= 1) {
-    const transaction = transactionsWithBalances[index];
-    transactionsWithBalances[index] = {
-      ...transaction,
-      kontostand: runningBalance == null ? balance.value : formatEuroCents(runningBalance)
-    };
-
+  for (const [index, transaction] of transactions.entries()) {
+    const dateKey = parseDateKey(transaction.datum);
     const amount = parseEuroCents(transaction.betragEur);
-    if (runningBalance != null && amount != null) {
-      runningBalance -= amount;
+    if (dateKey == null || amount == null) {
+      continue;
     }
+
+    const group = groups.get(dateKey) ?? { amount: 0, indices: [] };
+    group.amount += amount;
+    group.indices.push(index);
+    groups.set(dateKey, group);
+  }
+
+  const dateGroupsNewestFirst = [...groups.entries()].sort(([a], [b]) => b - a);
+
+  if (runningBalance == null || !dateGroupsNewestFirst.length) {
+    return {
+      fileName,
+      balance,
+      transactions: transactionsWithBalances.map((transaction) => ({
+        ...transaction,
+        kontostand: balance.value
+      }))
+    };
+  }
+
+  for (const [, group] of dateGroupsNewestFirst) {
+    const kontostand = formatEuroCents(runningBalance);
+
+    for (const index of group.indices) {
+      transactionsWithBalances[index] = {
+        ...transactionsWithBalances[index],
+        kontostand
+      };
+    }
+
+    runningBalance -= group.amount;
   }
 
   return {
