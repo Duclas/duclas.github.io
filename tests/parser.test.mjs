@@ -125,7 +125,7 @@ test("extracts ending balance from footer keyword", () => {
   assert.equal(extractBalanceFromLines(lines).value, "3.123,45");
 });
 
-test("builds statement rows with balance column", () => {
+test("adds the statement balance as a final row", () => {
   const lines = groupTextItemsIntoLines([
     item("Datum", 20, 300),
     item("Erläuterung", 110, 300),
@@ -136,16 +136,32 @@ test("builds statement rows with balance column", () => {
     item("05.05.2026", 20, 260),
     item("Gehalt", 110, 260),
     item("2.100,00", 450, 260),
-    item("Kontostand", 360, 80),
+    item("Neuer Kontostand am 31.05.2026", 260, 80),
     item("3.123,45", 450, 80)
   ]);
 
   const result = buildRowsForStatement("auszug.pdf", [{ pageNumber: 1, lines }]);
-  assert.equal(result.transactions[0].kontostand, "1.023,45");
-  assert.equal(result.transactions[1].kontostand, "3.123,45");
+  assert.deepEqual(result.transactions, [
+    {
+      datum: "04.05.2026",
+      erlaeuterung: "Lastschrift",
+      betragEur: "-42,19"
+    },
+    {
+      datum: "05.05.2026",
+      erlaeuterung: "Gehalt",
+      betragEur: "2.100,00"
+    },
+    {
+      datum: "31.05.2026",
+      erlaeuterung: "Kontostand 31.05.2026",
+      betragEur: "3.123,45"
+    }
+  ]);
+  assert.equal(result.balance.date, "31.05.2026");
 });
 
-test("calculates daily balances backwards from the final balance", () => {
+test("falls back to the last footer date for the balance row", () => {
   const lines = groupTextItemsIntoLines([
     item("Datum", 20, 340),
     item("Erläuterung", 110, 340),
@@ -153,40 +169,17 @@ test("calculates daily balances backwards from the final balance", () => {
     item("30.01.2026", 20, 320),
     item("Ausgang", 110, 320),
     item("-100,00", 450, 320),
-    item("29.01.2026", 20, 300),
-    item("Aeltere Buchung", 110, 300),
-    item("-25,00", 450, 300),
-    item("Neuer Kontostand 31.01.2026", 260, 80),
+    item("Abschluss per 31.01.2026", 260, 80),
+    item("Kontostand", 330, 80),
     item("1.000,00", 450, 80)
   ]);
 
   const result = buildRowsForStatement("auszug.pdf", [{ pageNumber: 1, lines }]);
-  assert.equal(result.transactions[0].kontostand, "1.000,00");
-  assert.equal(result.transactions[1].kontostand, "1.100,00");
-});
-
-test("uses the same balance for all transactions on one booking day", () => {
-  const lines = groupTextItemsIntoLines([
-    item("Datum", 20, 360),
-    item("Erläuterung", 110, 360),
-    item("Betrag EUR", 430, 360),
-    item("29.01.2026", 20, 340),
-    item("Aeltere Buchung", 110, 340),
-    item("-25,00", 450, 340),
-    item("30.01.2026", 20, 320),
-    item("Ausgang", 110, 320),
-    item("-100,00", 450, 320),
-    item("30.01.2026", 20, 300),
-    item("Eingang", 110, 300),
-    item("20,00", 450, 300),
-    item("Neuer Kontostand 31.01.2026", 260, 80),
-    item("1.000,00", 450, 80)
-  ]);
-
-  const result = buildRowsForStatement("auszug.pdf", [{ pageNumber: 1, lines }]);
-  assert.equal(result.transactions[0].kontostand, "1.080,00");
-  assert.equal(result.transactions[1].kontostand, "1.000,00");
-  assert.equal(result.transactions[2].kontostand, "1.000,00");
+  assert.deepEqual(result.transactions.at(-1), {
+    datum: "31.01.2026",
+    erlaeuterung: "Kontostand 31.01.2026",
+    betragEur: "1.000,00"
+  });
 });
 
 test("creates semicolon csv with utf friendly header", () => {
@@ -194,10 +187,9 @@ test("creates semicolon csv with utf friendly header", () => {
     {
       datum: "04.05.2026",
       erlaeuterung: "Text; mit Semikolon",
-      betragEur: "-9,99",
-      kontostand: "1.500,00"
+      betragEur: "-9,99"
     }
   ]);
 
-  assert.equal(csv, 'Datum;Erläuterung;Betrag EUR;Kontostand\r\n04.05.2026;"Text; mit Semikolon";-9,99;1.500,00');
+  assert.equal(csv, 'Datum;Erläuterung;Betrag EUR\r\n04.05.2026;"Text; mit Semikolon";-9,99');
 });

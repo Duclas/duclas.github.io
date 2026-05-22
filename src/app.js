@@ -3,7 +3,7 @@ import {
   createCsv,
   groupTextItemsIntoLines,
   rowsForWorkbook
-} from "./parser.js?v=day-balance-20260522";
+} from "./parser.js?v=balance-row-20260522";
 import { createXlsxBlob } from "./xlsx.js";
 
 import * as pdfjsLib from "../vendor/pdf.min.mjs";
@@ -74,7 +74,7 @@ function renderResults() {
 
   for (const row of exportRows.slice(0, 250)) {
     const tr = document.createElement("tr");
-    [row.datum, row.erlaeuterung, row.betragEur, row.kontostand].forEach((value) => {
+    [row.datum, row.erlaeuterung, row.betragEur].forEach((value) => {
       const td = document.createElement("td");
       td.textContent = value;
       tr.append(td);
@@ -83,11 +83,11 @@ function renderResults() {
   }
 
   const balances = statementResults
-    .map((result) => `${result.fileName}: ${result.balance.value || "nicht erkannt"}`)
+    .map((result) => `${result.fileName}: ${result.balance.value ? `${result.balance.value} (${result.balance.date || "Datum nicht erkannt"})` : "nicht erkannt"}`)
     .join(" | ");
   elements.summary.textContent = exportRows.length
-    ? `${exportRows.length} Buchungen aus ${statementResults.length} PDF(s). Kontostand: ${balances}`
-    : "Noch keine Buchungen extrahiert.";
+    ? `${exportRows.length} Exportzeilen aus ${statementResults.length} PDF(s). Kontostand: ${balances}`
+    : "Noch keine Zeilen extrahiert.";
 }
 
 function addFiles(fileList) {
@@ -144,9 +144,9 @@ async function scanFiles() {
     }
 
     if (!exportRows.length) {
-      setStatus("Keine Buchungszeilen erkannt. Pruefe, ob die PDFs Text enthalten und nicht nur gescannte Bilder sind.", "warn");
+      setStatus("Keine Zeilen erkannt. Pruefe, ob die PDFs Text enthalten und nicht nur gescannte Bilder sind.", "warn");
     } else {
-      setStatus(`${exportRows.length} Buchungen erkannt. Export ist bereit.`, "ok");
+      setStatus(`${exportRows.length} Exportzeilen erkannt. Export ist bereit.`, "ok");
     }
   } catch (error) {
     console.error(error);

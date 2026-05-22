@@ -1,5 +1,5 @@
 const XLSX_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-const HEADERS = ["Datum", "Erläuterung", "Betrag EUR", "Kontostand"];
+const HEADERS = ["Datum", "Erläuterung", "Betrag EUR"];
 
 const encoder = new TextEncoder();
 const crcTable = new Uint32Array(256).map((_, index) => {
@@ -49,7 +49,7 @@ function worksheetXml(rows) {
   <cols>
     <col min="1" max="1" width="13" customWidth="1"/>
     <col min="2" max="2" width="72" customWidth="1"/>
-    <col min="3" max="4" width="16" customWidth="1"/>
+    <col min="3" max="3" width="16" customWidth="1"/>
   </cols>
   <sheetData>${sheetRows}</sheetData>
 </worksheet>`;

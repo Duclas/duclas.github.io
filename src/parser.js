@@ -1,4 +1,6 @@
-const DATE_PATTERN = /\b\d{1,2}\.\d{1,2}\.(?:\d{2,4})?\b/;
+const DATE_SOURCE = String.raw`\b\d{1,2}\.\d{1,2}\.(?:\d{2,4})?\b`;
+const DATE_PATTERN = new RegExp(DATE_SOURCE);
+const DATE_SCAN_PATTERN = new RegExp(DATE_SOURCE, "g");
 const EURO_AMOUNT_SOURCE = String.raw`[-+]?\s?\d{1,3}(?:\.\d{3})*,\d{2}[-+]?|[-+]?\s?\d+,\d{2}[-+]?`;
 const AMOUNT_PATTERN = new RegExp(EURO_AMOUNT_SOURCE, "g");
 const AMOUNT_DETECT_PATTERN = new RegExp(EURO_AMOUNT_SOURCE);
@@ -21,36 +23,6 @@ function hasAmount(value) {
   return AMOUNT_DETECT_PATTERN.test(cleanText(value));
 }
 
-function parseEuroCents(value) {
-  const cleaned = normalizeAmount(value).replace(/\s+/g, "");
-  if (!cleaned) {
-    return null;
-  }
-
-  const negative = cleaned.startsWith("-") || cleaned.endsWith("-");
-  const unsigned = cleaned.replaceAll("+", "").replaceAll("-", "");
-  const [euroPart, centPart] = unsigned.split(",");
-  const euros = Number.parseInt(euroPart.replaceAll(".", ""), 10);
-  const cents = Number.parseInt(centPart, 10);
-
-  if (!Number.isFinite(euros) || !Number.isFinite(cents)) {
-    return null;
-  }
-
-  const total = euros * 100 + cents;
-  return negative ? -total : total;
-}
-
-function formatEuroCents(value) {
-  const negative = value < 0;
-  const absolute = Math.abs(value);
-  const euros = Math.floor(absolute / 100)
-    .toString()
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-  const cents = String(absolute % 100).padStart(2, "0");
-  return `${negative ? "-" : ""}${euros},${cents}`;
-}
-
 function parseDateKey(value) {
   const match = cleanText(value).match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})?/);
   if (!match) {
@@ -68,6 +40,11 @@ function parseDateKey(value) {
   }
 
   return year * 10000 + month * 100 + day;
+}
+
+function extractLastDate(value) {
+  const matches = cleanText(value).match(DATE_SCAN_PATTERN);
+  return matches?.at(-1) ?? "";
 }
 
 function itemX(item) {
@@ -274,6 +251,7 @@ export function extractBalanceFromLines(lines) {
     if (amounts.length) {
       return {
         value: amounts[amounts.length - 1],
+        date: extractLastDate(line.text),
         source: line.text,
         confidence: "keyword"
       };
@@ -285,6 +263,7 @@ export function extractBalanceFromLines(lines) {
     if (amounts.length) {
       return {
         value: amounts[amounts.length - 1],
+        date: extractLastDate(line.text),
         source: line.text,
         confidence: "fallback"
       };
@@ -293,67 +272,58 @@ export function extractBalanceFromLines(lines) {
 
   return {
     value: "",
+    date: "",
     source: "",
     confidence: "missing"
   };
+}
+
+function resolveBalanceDate(balance, lines, transactions) {
+  if (balance.date) {
+    return balance.date;
+  }
+
+  for (const line of [...lines].reverse().slice(0, 25)) {
+    const date = extractLastDate(line.text);
+    if (date) {
+      return date;
+    }
+  }
+
+  return transactions
+    .map((transaction) => ({
+      date: transaction.datum,
+      key: parseDateKey(transaction.datum)
+    }))
+    .filter((entry) => entry.key != null)
+    .sort((a, b) => b.key - a.key)[0]?.date ?? "";
 }
 
 export function buildRowsForStatement(fileName, pages) {
   const lines = pages.flatMap((page) => page.lines);
   const transactions = extractTransactionsFromLines(lines);
   const balance = extractBalanceFromLines(lines);
-  let runningBalance = parseEuroCents(balance.value);
-  const transactionsWithBalances = [...transactions];
-  const groups = new Map();
-
-  for (const [index, transaction] of transactions.entries()) {
-    const dateKey = parseDateKey(transaction.datum);
-    const amount = parseEuroCents(transaction.betragEur);
-    if (dateKey == null || amount == null) {
-      continue;
-    }
-
-    const group = groups.get(dateKey) ?? { amount: 0, indices: [] };
-    group.amount += amount;
-    group.indices.push(index);
-    groups.set(dateKey, group);
-  }
-
-  const dateGroupsNewestFirst = [...groups.entries()].sort(([a], [b]) => b - a);
-
-  if (runningBalance == null || !dateGroupsNewestFirst.length) {
-    return {
-      fileName,
-      balance,
-      transactions: transactionsWithBalances.map((transaction) => ({
-        ...transaction,
-        kontostand: balance.value
-      }))
-    };
-  }
-
-  for (const [, group] of dateGroupsNewestFirst) {
-    const kontostand = formatEuroCents(runningBalance);
-
-    for (const index of group.indices) {
-      transactionsWithBalances[index] = {
-        ...transactionsWithBalances[index],
-        kontostand
-      };
-    }
-
-    runningBalance -= group.amount;
-  }
+  const balanceDate = resolveBalanceDate(balance, lines, transactions);
+  const balanceRow = balance.value
+    ? [{
+      datum: balanceDate,
+      erlaeuterung: balanceDate ? `Kontostand ${balanceDate}` : "Kontostand",
+      betragEur: balance.value
+    }]
+    : [];
 
   return {
     fileName,
-    balance,
-    transactions: transactionsWithBalances
+    balance: {
+      ...balance,
+      date: balanceDate
+    },
+    transactions: [...transactions, ...balanceRow]
   };
 }
 
 export function createCsv(rows) {
-  const header = ["Datum", "Erläuterung", "Betrag EUR", "Kontostand"];
+  const header = ["Datum", "Erläuterung", "Betrag EUR"];
   const escapeCell = (value) => {
     const text = String(value ?? "");
     if (/[;"\r\n]/.test(text)) {
@@ -364,7 +334,7 @@ export function createCsv(rows) {
 
   return [
     header.map(escapeCell).join(";"),
-    ...rows.map((row) => [row.datum, row.erlaeuterung, row.betragEur, row.kontostand].map(escapeCell).join(";"))
+    ...rows.map((row) => [row.datum, row.erlaeuterung, row.betragEur].map(escapeCell).join(";"))
   ].join("\r\n");
 }
 
@@ -372,7 +342,6 @@ export function rowsForWorkbook(rows) {
   return rows.map((row) => ({
     Datum: row.datum,
     "Erläuterung": row.erlaeuterung,
-    "Betrag EUR": row.betragEur,
-    Kontostand: row.kontostand
+    "Betrag EUR": row.betragEur
   }));
 }

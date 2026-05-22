@@ -13,9 +13,8 @@ Die exportierte Datei enthaelt diese Spalten:
 - `Datum`
 - `Erläuterung`
 - `Betrag EUR`
-- `Kontostand`
 
-Bei mehreren PDFs werden alle Buchungszeilen zusammengefuehrt. Der am Ende einer PDF erkannte Kontostand wird in der vierten Spalte fuer die Zeilen dieser PDF eingetragen.
+Bei mehreren PDFs werden alle Buchungszeilen zusammengefuehrt. Der am Ende einer PDF erkannte Kontostand wird pro PDF als eigene Zeile angehaengt: `Datum` ist das erkannte Enddatum, `Erläuterung` ist `Kontostand DATUM`, und `Betrag EUR` ist der erkannte Kontostand.
 
 ## Entwicklung
 

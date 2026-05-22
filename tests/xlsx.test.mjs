@@ -7,8 +7,7 @@ test("creates a valid xlsx zip shell", () => {
     {
       Datum: "04.05.2026",
       "Erläuterung": "Text & Sonderzeichen",
-      "Betrag EUR": "-9,99",
-      Kontostand: "1.500,00"
+      "Betrag EUR": "-9,99"
     }
   ]);
 
