@@ -5,7 +5,8 @@ import {
   createCsv,
   extractBalanceFromLines,
   extractTransactionsFromLines,
-  groupTextItemsIntoLines
+  groupTextItemsIntoLines,
+  sortRowsByDate
 } from "../src/parser.js";
 
 function item(str, x, y, width = str.length * 5) {
@@ -192,4 +193,20 @@ test("creates semicolon csv with utf friendly header", () => {
   ]);
 
   assert.equal(csv, 'Datum;Erläuterung;Betrag EUR\r\n04.05.2026;"Text; mit Semikolon";-9,99');
+});
+
+test("sorts export rows by date ascending", () => {
+  const rows = sortRowsByDate([
+    { datum: "05.01.2023", erlaeuterung: "PDF 2023", betragEur: "2,00" },
+    { datum: "31.12.2022", erlaeuterung: "Kontostand 31.12.2022", betragEur: "1.000,00" },
+    { datum: "01.01.2022", erlaeuterung: "PDF 2022", betragEur: "1,00" },
+    { datum: "", erlaeuterung: "ohne Datum", betragEur: "0,00" }
+  ]);
+
+  assert.deepEqual(rows.map((row) => row.erlaeuterung), [
+    "PDF 2022",
+    "Kontostand 31.12.2022",
+    "PDF 2023",
+    "ohne Datum"
+  ]);
 });

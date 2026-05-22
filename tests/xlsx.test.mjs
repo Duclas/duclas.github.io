@@ -12,5 +12,6 @@ test("creates a valid xlsx zip shell", () => {
   ]);
 
   assert.equal(String.fromCharCode(...bytes.slice(0, 2)), "PK");
+  assert.ok(!new TextDecoder().decode(bytes).includes("Kontostand"));
   assert.ok(bytes.length > 1000);
 });

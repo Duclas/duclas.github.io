@@ -2,9 +2,10 @@ import {
   buildRowsForStatement,
   createCsv,
   groupTextItemsIntoLines,
-  rowsForWorkbook
-} from "./parser.js?v=balance-row-20260522";
-import { createXlsxBlob } from "./xlsx.js";
+  rowsForWorkbook,
+  sortRowsByDate
+} from "./parser.js?v=three-cols-sort-20260522";
+import { createXlsxBlob } from "./xlsx.js?v=three-cols-sort-20260522";
 
 import * as pdfjsLib from "../vendor/pdf.min.mjs";
 
@@ -140,6 +141,7 @@ async function scanFiles() {
       const result = await readPdf(file);
       statementResults.push(result);
       exportRows.push(...result.transactions);
+      exportRows = sortRowsByDate(exportRows);
       renderResults();
     }
 

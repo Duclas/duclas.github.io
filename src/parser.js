@@ -338,6 +338,28 @@ export function createCsv(rows) {
   ].join("\r\n");
 }
 
+export function sortRowsByDate(rows) {
+  return rows
+    .map((row, index) => ({
+      row,
+      index,
+      dateKey: parseDateKey(row.datum)
+    }))
+    .sort((a, b) => {
+      if (a.dateKey == null && b.dateKey == null) {
+        return a.index - b.index;
+      }
+      if (a.dateKey == null) {
+        return 1;
+      }
+      if (b.dateKey == null) {
+        return -1;
+      }
+      return a.dateKey - b.dateKey || a.index - b.index;
+    })
+    .map((entry) => entry.row);
+}
+
 export function rowsForWorkbook(rows) {
   return rows.map((row) => ({
     Datum: row.datum,
