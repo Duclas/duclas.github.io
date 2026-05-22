@@ -152,6 +152,10 @@ function parseByText(lineText) {
     return null;
   }
 
+  if (dateMatch.index > 2) {
+    return null;
+  }
+
   const amountMatches = [...lineText.matchAll(AMOUNT_PATTERN)];
   if (!amountMatches.length) {
     return null;

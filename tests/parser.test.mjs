@@ -77,6 +77,45 @@ test("skips repeated table headers on later pages", () => {
   assert.equal(rows[1].erlaeuterung, "Gehalt");
 });
 
+test("does not turn dates inside explanations into transactions", () => {
+  const lines = groupTextItemsIntoLines([
+    item("Datum", 20, 320),
+    item("Erläuterung", 110, 320),
+    item("Betrag EUR", 430, 320),
+    item("02.05.2026", 20, 300),
+    item("Kartenzahlung Restaurant", 110, 300),
+    item("-42,19", 450, 300),
+    item("DATUM 04.05.2026, 18:45 Uhr)", 110, 286),
+    item("03.05.2026", 20, 260),
+    item("Gehalt", 110, 260),
+    item("2.100,00", 450, 260)
+  ]);
+
+  const rows = extractTransactionsFromLines(lines);
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].datum, "02.05.2026");
+  assert.equal(rows[0].erlaeuterung, "Kartenzahlung Restaurant DATUM 04.05.2026, 18:45 Uhr)");
+  assert.equal(rows[1].datum, "03.05.2026");
+});
+
+test("does not use explanation dates as fallback when the date column is empty", () => {
+  const lines = groupTextItemsIntoLines([
+    item("Datum", 20, 320),
+    item("Erläuterung", 110, 320),
+    item("Betrag EUR", 430, 320),
+    item("02.05.2026", 20, 300),
+    item("Kartenzahlung Restaurant", 110, 300),
+    item("-42,19", 450, 300),
+    item("DATUM 04.05.2026, 18:45 Uhr)", 110, 286),
+    item("-17,99", 450, 286)
+  ]);
+
+  const rows = extractTransactionsFromLines(lines);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].datum, "02.05.2026");
+  assert.equal(rows[0].erlaeuterung, "Kartenzahlung Restaurant DATUM 04.05.2026, 18:45 Uhr)");
+});
+
 test("extracts ending balance from footer keyword", () => {
   const lines = [
     { text: "Datum Erläuterung Betrag EUR", items: [], y: 200 },
