@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Kontoauszug Converter</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./src/app.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-label="Kontoauszug Converter">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Lokaler PDF-Export</p>
+            <h1>Kontoauszug Converter</h1>
+          </div>
+          <div class="privacy-pill" title="Dateien werden nur in deinem Browser verarbeitet.">
+            Lokal
+          </div>
+        </header>
+
+        <div class="tool-grid">
+          <section class="upload-panel" aria-label="PDF Upload">
+            <label class="dropzone" data-dropzone>
+              <input data-file-input type="file" accept="application/pdf,.pdf" multiple>
+              <span class="drop-title">PDFs hier ablegen</span>
+              <span class="drop-subtitle">oder anklicken und eine oder mehrere Dateien auswahlen</span>
+            </label>
+
+            <ul class="file-list" data-file-list></ul>
+
+            <div class="actions">
+              <button type="button" class="primary" data-scan>Scannen</button>
+              <button type="button" data-clear>Leeren</button>
+            </div>
+          </section>
+
+          <section class="export-panel" aria-label="Export">
+            <div class="status-line" data-status></div>
+            <p class="summary" data-summary>Noch keine Buchungen extrahiert.</p>
+            <div class="actions">
+              <button type="button" class="primary" data-export-xlsx>XLSX exportieren</button>
+              <button type="button" data-export-csv>CSV exportieren</button>
+            </div>
+          </section>
+        </div>
+
+        <section class="table-panel" aria-label="Vorschau">
+          <div class="table-header">
+            <h2>Vorschau</h2>
+            <span>Maximal 250 Zeilen sichtbar, Export enthaelt alle Zeilen.</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Datum</th>
+                  <th>Erläuterung</th>
+                  <th>Betrag EUR</th>
+                  <th>Kontostand</th>
+                </tr>
+              </thead>
+              <tbody data-table-body></tbody>
+            </table>
+            <p class="empty-state" data-empty-state>Nach dem Scan erscheinen hier die erkannten Tabellenzeilen.</p>
+          </div>
+        </section>
+      </section>
+    </main>
+  </body>
+</html>
