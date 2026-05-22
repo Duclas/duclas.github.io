@@ -132,13 +132,17 @@ test("builds statement rows with balance column", () => {
     item("Betrag EUR", 430, 300),
     item("04.05.2026", 20, 280),
     item("Lastschrift", 110, 280),
-    item("-9,99", 450, 280),
+    item("-42,19", 450, 280),
+    item("05.05.2026", 20, 260),
+    item("Gehalt", 110, 260),
+    item("2.100,00", 450, 260),
     item("Kontostand", 360, 80),
-    item("1.500,00", 450, 80)
+    item("3.123,45", 450, 80)
   ]);
 
   const result = buildRowsForStatement("auszug.pdf", [{ pageNumber: 1, lines }]);
-  assert.equal(result.transactions[0].kontostand, "1.500,00");
+  assert.equal(result.transactions[0].kontostand, "1.023,45");
+  assert.equal(result.transactions[1].kontostand, "3.123,45");
 });
 
 test("creates semicolon csv with utf friendly header", () => {

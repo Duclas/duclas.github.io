@@ -1,6 +1,7 @@
 const DATE_PATTERN = /\b\d{1,2}\.\d{1,2}\.(?:\d{2,4})?\b/;
-const AMOUNT_PATTERN = /[-+]?\s?\d{1,3}(?:\.\d{3})*,\d{2}|[-+]?\s?\d+,\d{2}/g;
-const AMOUNT_DETECT_PATTERN = /[-+]?\s?\d{1,3}(?:\.\d{3})*,\d{2}|[-+]?\s?\d+,\d{2}/;
+const EURO_AMOUNT_SOURCE = String.raw`[-+]?\s?\d{1,3}(?:\.\d{3})*,\d{2}[-+]?|[-+]?\s?\d+,\d{2}[-+]?`;
+const AMOUNT_PATTERN = new RegExp(EURO_AMOUNT_SOURCE, "g");
+const AMOUNT_DETECT_PATTERN = new RegExp(EURO_AMOUNT_SOURCE);
 const BALANCE_KEYWORDS = /(konto\s*stand|kontostand|saldo|endsaldo|abschluss|neuer\s+stand)/i;
 
 function cleanText(value) {
@@ -12,12 +13,42 @@ function cleanText(value) {
 
 function normalizeAmount(value) {
   const cleaned = cleanText(value).replace(/\s+/g, "");
-  const match = cleaned.match(/[-+]?\d{1,3}(?:\.\d{3})*,\d{2}|[-+]?\d+,\d{2}/);
+  const match = cleaned.match(new RegExp(EURO_AMOUNT_SOURCE));
   return match ? match[0] : "";
 }
 
 function hasAmount(value) {
   return AMOUNT_DETECT_PATTERN.test(cleanText(value));
+}
+
+function parseEuroCents(value) {
+  const cleaned = normalizeAmount(value).replace(/\s+/g, "");
+  if (!cleaned) {
+    return null;
+  }
+
+  const negative = cleaned.startsWith("-") || cleaned.endsWith("-");
+  const unsigned = cleaned.replaceAll("+", "").replaceAll("-", "");
+  const [euroPart, centPart] = unsigned.split(",");
+  const euros = Number.parseInt(euroPart.replaceAll(".", ""), 10);
+  const cents = Number.parseInt(centPart, 10);
+
+  if (!Number.isFinite(euros) || !Number.isFinite(cents)) {
+    return null;
+  }
+
+  const total = euros * 100 + cents;
+  return negative ? -total : total;
+}
+
+function formatEuroCents(value) {
+  const negative = value < 0;
+  const absolute = Math.abs(value);
+  const euros = Math.floor(absolute / 100)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const cents = String(absolute % 100).padStart(2, "0");
+  return `${negative ? "-" : ""}${euros},${cents}`;
 }
 
 function itemX(item) {
@@ -252,14 +283,26 @@ export function buildRowsForStatement(fileName, pages) {
   const lines = pages.flatMap((page) => page.lines);
   const transactions = extractTransactionsFromLines(lines);
   const balance = extractBalanceFromLines(lines);
+  let runningBalance = parseEuroCents(balance.value);
+  const transactionsWithBalances = [...transactions];
+
+  for (let index = transactionsWithBalances.length - 1; index >= 0; index -= 1) {
+    const transaction = transactionsWithBalances[index];
+    transactionsWithBalances[index] = {
+      ...transaction,
+      kontostand: runningBalance == null ? balance.value : formatEuroCents(runningBalance)
+    };
+
+    const amount = parseEuroCents(transaction.betragEur);
+    if (runningBalance != null && amount != null) {
+      runningBalance -= amount;
+    }
+  }
 
   return {
     fileName,
     balance,
-    transactions: transactions.map((transaction) => ({
-      ...transaction,
-      kontostand: balance.value
-    }))
+    transactions: transactionsWithBalances
   };
 }
 
