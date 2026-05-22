@@ -16,6 +16,8 @@ Die exportierte Datei enthaelt diese Spalten:
 
 Bei mehreren PDFs werden alle Buchungszeilen zusammengefuehrt und nach Datum aufsteigend sortiert. Der am Ende einer PDF erkannte Kontostand wird pro PDF als eigene Zeile angehaengt: `Datum` ist das erkannte Enddatum, `Erläuterung` ist `Kontostand DATUM`, und `Betrag EUR` ist der erkannte Kontostand.
 
+Identische PDFs und doppelte Buchungen mit gleichem Datum, gleicher Erlaeuterung und gleichem Betrag werden als Warnung markiert. Der Export bleibt moeglich; betroffene Zeilen werden in der XLSX-Datei rot hinterlegt.
+
 ## Entwicklung
 
 ```bash

@@ -6,6 +6,8 @@ import {
   extractBalanceFromLines,
   extractTransactionsFromLines,
   groupTextItemsIntoLines,
+  annotateDuplicateBookings,
+  rowsForWorkbook,
   sortRowsByDate
 } from "../src/parser.js";
 
@@ -142,7 +144,7 @@ test("adds the statement balance as a final row", () => {
   ]);
 
   const result = buildRowsForStatement("auszug.pdf", [{ pageNumber: 1, lines }]);
-  assert.deepEqual(result.transactions, [
+  assert.deepEqual(result.transactions.map(({ datum, erlaeuterung, betragEur }) => ({ datum, erlaeuterung, betragEur })), [
     {
       datum: "04.05.2026",
       erlaeuterung: "Lastschrift",
@@ -176,7 +178,8 @@ test("falls back to the last footer date for the balance row", () => {
   ]);
 
   const result = buildRowsForStatement("auszug.pdf", [{ pageNumber: 1, lines }]);
-  assert.deepEqual(result.transactions.at(-1), {
+  const { datum, erlaeuterung, betragEur } = result.transactions.at(-1);
+  assert.deepEqual({ datum, erlaeuterung, betragEur }, {
     datum: "31.01.2026",
     erlaeuterung: "Kontostand 31.01.2026",
     betragEur: "1.000,00"
@@ -209,4 +212,18 @@ test("sorts export rows by date ascending", () => {
     "PDF 2023",
     "ohne Datum"
   ]);
+});
+
+test("annotates duplicate booking rows", () => {
+  const { rows, warnings } = annotateDuplicateBookings([
+    { datum: "05.01.2023", erlaeuterung: "Miete", betragEur: "-900,00", _kind: "transaction" },
+    { datum: "05.01.2023", erlaeuterung: "Miete", betragEur: "-900,00", _kind: "transaction" },
+    { datum: "05.01.2023", erlaeuterung: "Kontostand 05.01.2023", betragEur: "1.000,00", _kind: "balance" }
+  ]);
+
+  assert.equal(warnings.length, 1);
+  assert.equal(rows[0]._warnings[0].type, "duplicate-booking");
+  assert.equal(rows[1]._warnings[0].type, "duplicate-booking");
+  assert.equal(rows[2]._warnings, undefined);
+  assert.equal(rowsForWorkbook(rows)[0].__highlight, true);
 });

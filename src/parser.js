@@ -13,6 +13,10 @@ function cleanText(value) {
     .trim();
 }
 
+function normalizeDuplicateText(value) {
+  return cleanText(value).toLowerCase();
+}
+
 function normalizeAmount(value) {
   const cleaned = cleanText(value).replace(/\s+/g, "");
   const match = cleaned.match(new RegExp(EURO_AMOUNT_SOURCE));
@@ -45,6 +49,34 @@ function parseDateKey(value) {
 function extractLastDate(value) {
   const matches = cleanText(value).match(DATE_SCAN_PATTERN);
   return matches?.at(-1) ?? "";
+}
+
+function duplicateBookingKey(row) {
+  if (row._kind === "balance") {
+    return "";
+  }
+
+  const date = cleanText(row.datum);
+  const explanation = normalizeDuplicateText(row.erlaeuterung);
+  const amount = normalizeAmount(row.betragEur);
+
+  if (!date || !explanation || !amount) {
+    return "";
+  }
+
+  return [date, explanation, amount].join("\u001f");
+}
+
+function withRowWarning(row, warning) {
+  const warnings = row._warnings ?? [];
+  if (warnings.some((existing) => existing.type === warning.type && existing.message === warning.message)) {
+    return row;
+  }
+
+  return {
+    ...row,
+    _warnings: [...warnings, warning]
+  };
 }
 
 function itemX(item) {
@@ -304,11 +336,18 @@ export function buildRowsForStatement(fileName, pages) {
   const transactions = extractTransactionsFromLines(lines);
   const balance = extractBalanceFromLines(lines);
   const balanceDate = resolveBalanceDate(balance, lines, transactions);
+  const transactionRows = transactions.map((transaction) => ({
+    ...transaction,
+    _kind: "transaction",
+    _sourceFile: fileName
+  }));
   const balanceRow = balance.value
     ? [{
       datum: balanceDate,
       erlaeuterung: balanceDate ? `Kontostand ${balanceDate}` : "Kontostand",
-      betragEur: balance.value
+      betragEur: balance.value,
+      _kind: "balance",
+      _sourceFile: fileName
     }]
     : [];
 
@@ -318,7 +357,7 @@ export function buildRowsForStatement(fileName, pages) {
       ...balance,
       date: balanceDate
     },
-    transactions: [...transactions, ...balanceRow]
+    transactions: [...transactionRows, ...balanceRow]
   };
 }
 
@@ -360,10 +399,49 @@ export function sortRowsByDate(rows) {
     .map((entry) => entry.row);
 }
 
+export function annotateDuplicateBookings(rows) {
+  const output = rows.map((row) => row._warnings?.length
+    ? { ...row, _warnings: [...row._warnings] }
+    : { ...row });
+  const groups = new Map();
+
+  for (const [index, row] of output.entries()) {
+    const key = duplicateBookingKey(row);
+    if (!key) {
+      continue;
+    }
+
+    const group = groups.get(key) ?? [];
+    group.push(index);
+    groups.set(key, group);
+  }
+
+  const warnings = [];
+  for (const group of groups.values()) {
+    if (group.length < 2) {
+      continue;
+    }
+
+    const first = output[group[0]];
+    const message = `Doppelte Buchung: ${first.datum} | ${first.erlaeuterung} | ${first.betragEur}`;
+    warnings.push(message);
+
+    for (const index of group) {
+      output[index] = withRowWarning(output[index], {
+        type: "duplicate-booking",
+        message
+      });
+    }
+  }
+
+  return { rows: output, warnings };
+}
+
 export function rowsForWorkbook(rows) {
   return rows.map((row) => ({
     Datum: row.datum,
     "Erläuterung": row.erlaeuterung,
-    "Betrag EUR": row.betragEur
+    "Betrag EUR": row.betragEur,
+    __highlight: Boolean(row._warnings?.length)
   }));
 }

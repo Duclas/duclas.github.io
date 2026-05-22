@@ -1,11 +1,12 @@
 import {
+  annotateDuplicateBookings,
   buildRowsForStatement,
   createCsv,
   groupTextItemsIntoLines,
   rowsForWorkbook,
   sortRowsByDate
-} from "./parser.js?v=three-cols-sort-20260522";
-import { createXlsxBlob } from "./xlsx.js?v=three-cols-sort-20260522";
+} from "./parser.js?v=duplicate-warnings-20260522";
+import { createXlsxBlob } from "./xlsx.js?v=duplicate-warnings-20260522";
 
 import * as pdfjsLib from "../vendor/pdf.min.mjs";
 
@@ -28,6 +29,7 @@ const elements = {
 let selectedFiles = [];
 let exportRows = [];
 let statementResults = [];
+let scanWarnings = [];
 
 function formatBytes(bytes) {
   if (bytes < 1024 * 1024) {
@@ -75,6 +77,10 @@ function renderResults() {
 
   for (const row of exportRows.slice(0, 250)) {
     const tr = document.createElement("tr");
+    if (row._warnings?.length) {
+      tr.dataset.warning = "true";
+      tr.title = row._warnings.map((warning) => warning.message).join(" | ");
+    }
     [row.datum, row.erlaeuterung, row.betragEur].forEach((value) => {
       const td = document.createElement("td");
       td.textContent = value;
@@ -87,26 +93,30 @@ function renderResults() {
     .map((result) => `${result.fileName}: ${result.balance.value ? `${result.balance.value} (${result.balance.date || "Datum nicht erkannt"})` : "nicht erkannt"}`)
     .join(" | ");
   elements.summary.textContent = exportRows.length
-    ? `${exportRows.length} Exportzeilen aus ${statementResults.length} PDF(s). Kontostand: ${balances}`
+    ? `${exportRows.length} Exportzeilen aus ${statementResults.length} PDF(s). Kontostand: ${balances}${scanWarnings.length ? ` Warnungen: ${scanWarnings.join(" ")}` : ""}`
     : "Noch keine Zeilen extrahiert.";
 }
 
 function addFiles(fileList) {
   const incoming = [...fileList].filter((file) => file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf"));
-  const byKey = new Map(selectedFiles.map((file) => [`${file.name}:${file.size}:${file.lastModified}`, file]));
-
-  for (const file of incoming) {
-    byKey.set(`${file.name}:${file.size}:${file.lastModified}`, file);
-  }
-
-  selectedFiles = [...byKey.values()];
+  selectedFiles = [...selectedFiles, ...incoming];
+  elements.fileInput.value = "";
   renderFileList();
   updateButtons();
   setStatus(selectedFiles.length ? `${selectedFiles.length} PDF(s) bereit.` : "Bitte eine oder mehrere PDF-Dateien auswahlen.");
 }
 
+async function sha256Hex(data) {
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(hash)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 async function readPdf(file) {
-  const data = new Uint8Array(await file.arrayBuffer());
+  const buffer = await file.arrayBuffer();
+  const fileHash = await sha256Hex(buffer);
+  const data = new Uint8Array(buffer);
   const loadingTask = pdfjsLib.getDocument({ data });
   const pdf = await loadingTask.promise;
   const pages = [];
@@ -122,7 +132,63 @@ async function readPdf(file) {
   }
 
   await pdf.destroy();
-  return buildRowsForStatement(file.name, pages);
+  const result = buildRowsForStatement(file.name, pages);
+  return {
+    ...result,
+    fileHash,
+    transactions: result.transactions.map((row) => ({
+      ...row,
+      _fileHash: fileHash,
+      _sourceFile: file.name
+    }))
+  };
+}
+
+function annotateDuplicatePdfRows(rows) {
+  const groups = new Map();
+
+  for (const result of statementResults) {
+    const group = groups.get(result.fileHash) ?? [];
+    group.push(result.fileName);
+    groups.set(result.fileHash, group);
+  }
+
+  const duplicateHashes = new Map([...groups.entries()].filter(([, names]) => names.length > 1));
+  const warnings = [...duplicateHashes.values()].map((names) => `Identische PDFs: ${names.join(", ")}`);
+
+  const annotatedRows = rows.map((row) => {
+    const names = duplicateHashes.get(row._fileHash);
+    if (!names) {
+      return row;
+    }
+
+    const existingWarnings = row._warnings ?? [];
+    return {
+      ...row,
+      _warnings: [
+        ...existingWarnings,
+        {
+          type: "duplicate-pdf",
+          message: `Zeile aus identischer PDF-Gruppe: ${names.join(", ")}`
+        }
+      ]
+    };
+  });
+
+  return { rows: annotatedRows, warnings };
+}
+
+function rebuildExportRows() {
+  let rows = statementResults.flatMap((result) => result.transactions.map((row) => ({
+    ...row,
+    _warnings: []
+  })));
+
+  const pdfDuplicates = annotateDuplicatePdfRows(rows);
+  const bookingDuplicates = annotateDuplicateBookings(pdfDuplicates.rows);
+
+  exportRows = sortRowsByDate(bookingDuplicates.rows);
+  scanWarnings = [...pdfDuplicates.warnings, ...bookingDuplicates.warnings];
 }
 
 async function scanFiles() {
@@ -132,6 +198,7 @@ async function scanFiles() {
 
   exportRows = [];
   statementResults = [];
+  scanWarnings = [];
   updateButtons();
   renderResults();
   elements.scanButton.disabled = true;
@@ -140,13 +207,14 @@ async function scanFiles() {
     for (const file of selectedFiles) {
       const result = await readPdf(file);
       statementResults.push(result);
-      exportRows.push(...result.transactions);
-      exportRows = sortRowsByDate(exportRows);
+      rebuildExportRows();
       renderResults();
     }
 
     if (!exportRows.length) {
       setStatus("Keine Zeilen erkannt. Pruefe, ob die PDFs Text enthalten und nicht nur gescannte Bilder sind.", "warn");
+    } else if (scanWarnings.length) {
+      setStatus(`Warnung: ${scanWarnings.length} Duplikat-Hinweis(e). Export ist moeglich; markierte Zeilen werden in XLSX rot hinterlegt.`, "error");
     } else {
       setStatus(`${exportRows.length} Exportzeilen erkannt. Export ist bereit.`, "ok");
     }
@@ -182,6 +250,7 @@ function clearAll() {
   selectedFiles = [];
   exportRows = [];
   statementResults = [];
+  scanWarnings = [];
   elements.fileInput.value = "";
   renderFileList();
   renderResults();

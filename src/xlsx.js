@@ -31,15 +31,26 @@ function columnName(index) {
 
 function cellXml(value, rowIndex, columnIndex) {
   const reference = `${columnName(columnIndex)}${rowIndex}`;
-  return `<c r="${reference}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(value)}</t></is></c>`;
+  const style = value?.style ? ` s="${value.style}"` : "";
+  return `<c r="${reference}"${style} t="inlineStr"><is><t xml:space="preserve">${escapeXml(value?.text ?? value)}</t></is></c>`;
 }
 
 function worksheetXml(rows) {
-  const allRows = [HEADERS, ...rows.map((row) => HEADERS.map((header) => row[header] ?? ""))];
+  const allRows = [
+    { values: HEADERS, highlight: false },
+    ...rows.map((row) => ({
+      values: HEADERS.map((header) => row[header] ?? ""),
+      highlight: Boolean(row.__highlight)
+    }))
+  ];
   const sheetRows = allRows
-    .map((row, index) => {
+    .map(({ values, highlight }, index) => {
       const rowIndex = index + 1;
-      return `<row r="${rowIndex}">${row.map((value, columnIndex) => cellXml(value, rowIndex, columnIndex)).join("")}</row>`;
+      const cells = values.map((value, columnIndex) => cellXml({
+        text: value,
+        style: highlight ? 1 : 0
+      }, rowIndex, columnIndex)).join("");
+      return `<row r="${rowIndex}">${cells}</row>`;
     })
     .join("");
 
@@ -66,6 +77,7 @@ function workbookRelsXml() {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
 </Relationships>`;
 }
 
@@ -83,7 +95,27 @@ function contentTypesXml() {
   <Default Extension="xml" ContentType="application/xml"/>
   <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
   <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+  <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
 </Types>`;
+}
+
+function stylesXml() {
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <fonts count="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/></font></fonts>
+  <fills count="3">
+    <fill><patternFill patternType="none"/></fill>
+    <fill><patternFill patternType="gray125"/></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFFFC7CE"/><bgColor indexed="64"/></patternFill></fill>
+  </fills>
+  <borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+  <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+  <cellXfs count="2">
+    <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+    <xf numFmtId="0" fontId="0" fillId="2" borderId="0" xfId="0" applyFill="1"/>
+  </cellXfs>
+  <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`;
 }
 
 function crc32(data) {
@@ -178,6 +210,7 @@ export function createXlsxBytes(rows) {
     { name: "_rels/.rels", text: rootRelsXml() },
     { name: "xl/workbook.xml", text: workbookXml() },
     { name: "xl/_rels/workbook.xml.rels", text: workbookRelsXml() },
+    { name: "xl/styles.xml", text: stylesXml() },
     { name: "xl/worksheets/sheet1.xml", text: worksheetXml(rows) }
   ];
 

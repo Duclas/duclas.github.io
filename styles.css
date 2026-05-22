@@ -302,6 +302,10 @@ td:nth-child(2) {
   color: #263244;
 }
 
+tbody tr[data-warning="true"] td {
+  background: #ffe7e3;
+}
+
 .empty-state {
   position: absolute;
   inset: 72px 16px auto;
